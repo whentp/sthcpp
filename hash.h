@@ -14,6 +14,6 @@ void prepareCryptTable(); ///< must run once before generating hashcode.
 unsigned int hashString(const char * raw_string, unsigned int dwHashType );
 unsigned int hashMem(const char * raw_string, size_t len, unsigned int dwHashType );///< convert mem section to hashcode. the same to hashString. length of the mem is required.
 
-unsigned int cryptTable[0x500];///< required by hashString and hashString
+extern unsigned int cryptTable[0x500];///< required by hashString and hashString
 
 #endif

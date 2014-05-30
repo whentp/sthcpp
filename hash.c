@@ -1,5 +1,7 @@
 #include "hash.h"
- 
+
+unsigned int cryptTable[0x500];///< required by hashString and hashString
+
 void prepareCryptTable() { 
 	unsigned int seed = 0x00100001, index1, index2, i;
 	for( index1 = 0; index1 < 0x100; index1++ ) { 

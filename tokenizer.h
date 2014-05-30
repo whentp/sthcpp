@@ -11,7 +11,7 @@ struct TokenItem;
 
 class Tokenizer {		
 	public:
-		virtual vector<TokenItem> * Tokenize(const string& original);
+		virtual vector<TokenItem> * Tokenize(const string& original)=0;
 };
 
 #endif
