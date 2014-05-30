@@ -9,9 +9,9 @@ using namespace std;
 
 struct TokenItem;
 
-class Tokenizer {		
+class Tokenizer {
 	public:
-		virtual vector<TokenItem> * Tokenize(const string& original);
+    virtual vector<TokenItem> * Tokenize(const string& original) = 0;
 };
 
 #endif

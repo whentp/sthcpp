@@ -42,3 +42,5 @@ unsigned int hashMem(const char *raw_string, size_t len, unsigned int dwHashType
 	}
 	return seed1; 
 }
+
+unsigned int cryptTable[0x500];///< required by hashString and hashString
