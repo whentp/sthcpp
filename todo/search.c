@@ -4,42 +4,41 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <time.h> 
-#include "hash_table.c"
-#include "file.c"
-#include "simplestring.c"
-#include "splitword.c"
-#include "structure.c"
+//#include "hash_table.c"
+#include "file_op.h"
+#include "hash.h"
+#include "structure.h"
+//#include "simplestring.c"
+//#include "splitword.c"
 
-#ifndef _construct__index__
-#define _construct__index__
+#ifndef _SEARCHER_H__
+#define _SEARCHER_H__
 
-void InitSearch()
-{
+
+
+
+#endif
+
+void initSearch() {
 	keynodelength=GetFileLength(fkeyindex)/sizeof(keynode);
-	InitSplit();
 }
 
-int getmemblock(comparenode node,memblock* mem)
-{
+MemBlock* getMemBlock(CompareNode node) {
 	FILE* indexfile;
-	int i;
-	if(node.n2<=0)
-	{
-		mem->length=0;
-		mem->block=NULL;
-		return 0;
+	if(node.n2 <= 0) {
+		return new MemBlock();
 	}
+	auto res = new MemBlock(node.n2);
 	indexfile=fopen(fcompressindex,"rb");
-	fseek(indexfile,node.n1,SEEK_SET);
-	mem->block=(unsigned int*)malloc(node.n2);
-	mem->length=node.n2;
-	fread(mem->block,1,node.n2,indexfile);
+	fseek(indexfile, node.n1, SEEK_SET);
+	res->block=(unsigned int*)malloc(node.n2);
+	res->length=node.n2;
+	fread(res->block,1 , node.n2, indexfile);
 	fclose(indexfile);
-
-	return 1;
+	return res;
 }
 
-void makenext(memblock* m1)
+void makenext(MemBlock* m1)
 {
 	unsigned int* tmp=m1->block;
 	int length=m1->length/sizeof(int);
@@ -64,23 +63,20 @@ int compareblock(memblock* m1,memblock* m2,memblock* m3)
 	tmp=m3->block;
 	while(i>0 && j>0)
 	{
-		if(*a==*b)
-		{
-			count++;
-			i--;j--;
-			*tmp=*a;
-			a++;b++;
-			tmp++;
+		if(*a==*b) {
+			++count;
+			--i; --j;
+			*tmp = *a;
+			--a; --b;
+			--tmp;
 		}
-		else if (*a < *b)
-		{
-			i--;
-			a++;
+		else if (*a < *b) {
+			--i;
+			++a;
 		}
-		else if(*a > *b)
-		{
-			j--;
-			b++;
+		else if(*a > *b) {
+			--j;
+			++b;
 		}
 	}
 	m3->length=count*sizeof(int);
@@ -98,7 +94,7 @@ int showresult(memblock* m1)
 	unsigned int filenumber;
 	tmp=m1->block;
 
-	for(i=0;i<length;i++)
+	for(i=0; i<length; i++)
 	{
 		filenumber=getfilenumber(tmp[i]);
 		fseek(filenameindex,filenumber*sizeof(FileNode),SEEK_SET);
@@ -130,33 +126,30 @@ int ShowCompleteResult(SearchResult* abc)
 	return 0;
 }
 
-struct comparenode findkey(unsigned int key)
-{
-	int l,m,r,tmp;
+CompareNode findKey(unsigned int key) {
+	int l, m, r, tmp; // left, middle, right, tmp.
 	keynode tmpk;
-	comparenode returnvalue;
+	CompareNode returnvalue;
 	FILE* keyindexf=fopen(fkeyindex,"rb");
-	returnvalue.n1=0;
-	returnvalue.n2=0;
-	l=1;r=keynodelength-1;
-	m=(l+r)/2;
-	while(l<=m && m<=r)
-	{
+	returnvalue.n1 = 0;
+	returnvalue.n2 = 0;
+	
+	l = 1;
+	r = keynodelength - 1;
+	m = (l + r) / 2;
+	while(l<=m && m<=r) {
 		fseek(keyindexf,m*sizeof(keynode),SEEK_SET);
 		fread((char*)(&tmpk),sizeof(keynode),1,keyindexf);
-		if(tmpk.key==key)
-		{
-			returnvalue.n1=tmpk.start;
-			returnvalue.n2=tmpk.length;
+		if(tmpk.key == key) {
+			returnvalue.n1 = tmpk.start;
+			returnvalue.n2 = tmpk.length;
 			break;
 		}
-		else if(tmpk.key>key)
-		{
-			r=m-1;m=(l+r)/2;
+		else if(tmpk.key > key) {
+			r = m - 1; m = (l + r)/2;
 		}
-		else if(tmpk.key<key)
-		{
-			l=m+1;m=(l+r)/2;
+		else if(tmpk.key < key) {
+			l = m + 1; m=(l + r)/2;
 		}
 	}
 	fclose(keyindexf);
@@ -268,7 +261,7 @@ void Search(SearchResult* abc,const char* keyword)
 
 }
 
-int main()
+/*int main()
 {
 	char abcd[256];
 	SearchResult ddd;
@@ -277,5 +270,5 @@ int main()
 	Search(&ddd,abcd);
 	ShowCompleteResult(&ddd);
 }
+*/
 
-#endif

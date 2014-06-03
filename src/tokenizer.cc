@@ -6,8 +6,3 @@
 
 using namespace std;
 
-struct TokenItem{
-	int offset;
-	int hash;
-};
-

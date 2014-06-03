@@ -7,13 +7,6 @@
 #include "tokenizer_english.h"
 
 using namespace std;
-/**
- * A TokenItem contains only the hashcode instead of a real string itself.
- * */
-struct TokenItem{
-	size_t offset;
-	int hash; ///< hashcode here.
-};
 
 /**
  * return a list of {offset of word, hash of word}.

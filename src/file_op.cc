@@ -1,8 +1,10 @@
+#include <iostream>
 #include <fstream>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "file_op.h"
+#include "common.h"
 
 using namespace std;
 
@@ -17,17 +19,17 @@ void createEmptyFile(const char* filename) {
 }
 
 ///< attentio: add \0 to the end of the file.
-void loadFile(const char * filename, char * memblock&, size_t filesize&){
-	const char * memblock;
-	streampos size;
+void loadFile(const char * filename, char * &memblock, size_t &filesize){
+	memblock = NULL;
+	size_t size;
 	ifstream file (filename, ios::in|ios::binary|ios::ate);
 
 	if (file.is_open()) {
 		size = file.tellg();
 		filesize = size;
-		memblock = new char[size+1];
-		file.seekg (0, ios::beg);
-		file.read (memblock, size);
+		memblock = new char[size + 1];
+		file.seekg(0, ios::beg);
+		file.read(memblock, size);
 		file.close();
 		debug_print("read file %s content.", filename);
 	}
@@ -46,5 +48,3 @@ int getFileLength(const char* filename) {
 		return buf.st_size;
 	}
 }
-
-#endif

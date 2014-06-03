@@ -5,12 +5,6 @@
 #define getfileoffset(aaa) ((aaa)<<16)>>16
 #define makeFileNode(a,b) ((a)<<16)+(b)
 
-struct memblock {
-	int length;
-	int flag;
-	unsigned int* block;
-};
-
 struct IndexNode {
 	unsigned int file;
 	unsigned int key;
@@ -21,7 +15,7 @@ struct CompareNode {
 	unsigned int n1;
 };
 
-struct keynode {
+struct KeyNode {
 	unsigned int key;
 	int start;
 	int length;
@@ -36,15 +30,23 @@ struct SearchResult {
 	FileNode* result;
 };
 
-const char* fkeyindex="keyindex.index";
-const char* fcontainer="container.index";
-const char* fraw="raw.index";
-const char* fcompressindex="compress.index";
+struct MemBlock {
+	int length;
+	int flag;
+	char* block;
+	MemBlock(size_t size);
+	MemBlock();
+	~MemBlock();
+	void Free();
+};
 
-int keynodelength;
+extern const char* fkeyindex;
+extern const char* fcontainer;
+extern const char* fraw;
+extern const char* fcompressindex;
 
-int compareIndex(const void* a, const void* b);
+extern int keynodelength;
 
-void FreeMemBlock(struct memblock* aaa);
+int compareIndex(const CompareNode a, const CompareNode b);
 
 #endif

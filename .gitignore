@@ -40,4 +40,5 @@ laji
 laji/*
 dist/*
 .project*
-
+*.index
+test_data/*

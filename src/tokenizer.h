@@ -7,7 +7,13 @@
 
 using namespace std;
 
-struct TokenItem;
+/**
+ * A TokenItem contains only the hashcode instead of a real string itself.
+ * */
+struct TokenItem{
+	int offset;
+	unsigned int hash;
+};
 
 class Tokenizer {		
 	public:
