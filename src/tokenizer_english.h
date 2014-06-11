@@ -6,11 +6,16 @@
 #include <vector>
 #include "tokenizer.h"
 
-using namespace std;
+namespace bible{
 
-class TokenizerEnglish: Tokenizer {
-	public:
-		vector<TokenItem> * Tokenize(const string& original);
-};
+	using namespace std;
+
+	class TokenizerEnglish: Tokenizer {
+		public:
+			vector<TokenItem> * Tokenize(const string& original);
+			string GetConfiguration();
+	};
+
+} // end namespace bible.
 
 #endif

@@ -3,12 +3,14 @@
 
 #include "debug.h"
 
-class StopWatch {
-private:
-	clock_t start;
-public:
-	StopWatch();
-	double Stop();
-};
+namespace bible{
 
+	class StopWatch {
+		private:
+			clock_t start;
+		public:
+			StopWatch();
+			double Stop();
+	};
+} // end namespace bible.
 #endif

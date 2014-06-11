@@ -6,3 +6,6 @@
 
 using namespace std;
 
+namespace bible{
+
+} // end namespace bible.
