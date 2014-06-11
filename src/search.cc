@@ -1,30 +1,36 @@
 #include <stdio.h>
-#include <malloc.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include <iostream>
+#include <fstream>
 #include "file_op.h"
 #include "hash.h"
 #include "structure.h"
 #include "tokenizer.h"
 #include "tokenizer_english.h"
 #include "search.h"
+#include "keyword_tree.h"
 #include "common.h"
 
 void initSearch() {
 	keynodelength = getFileLength(fkeyindex)/sizeof(KeyNode);
 }
 
-MemBlock* getMemBlock(CompareNode node) {
-	FILE* indexfile;
+MemBlock* getMemBlock(CompareNode node, const char* fcompressindex) {
 	if(node.n2 <= 0) {
 		return new MemBlock();
 	}
+
+	ifstream indexfile(fcompressindex, ios::in|ios::binary);
+
 	auto res = new MemBlock(node.n2);
-	indexfile=fopen(fcompressindex,"rb");
-	fseek(indexfile, node.n1, SEEK_SET);
-	fread(res->block,1 , node.n2, indexfile);
-	fclose(indexfile);
+	if (indexfile.is_open()) {
+		indexfile.seekg(node.n1, ios::beg);
+		indexfile.read(res->block, node.n2);
+		indexfile.close();
+	}
+	else{
+		cout << "Unable to open file";
+		exit(0);
+	}
 	return res;
 }
 
@@ -46,91 +52,78 @@ int compareBlock(MemBlock* m1, MemBlock* m2) {
 	tmp = (unsigned int*)m1->block;
 	while(i>0 && j>0) {
 		//debug_print("Comparing: %x, %x\n", *a, *b);
-		if(*a==*b) {
+		if (*a < *b) {
+			--i;
+			++a;
+		} else if(*a > *b) {
+			--j;
+			++b;
+		} else { // deal with equal.
 			++count;
 			--i; --j;
 			*tmp = *a;
 			++a;
 			++b;
 			++tmp;
-		} else if (*a < *b) {
-			--i;
-			++a;
-		} else if(*a > *b) {
-			--j;
-			++b;
 		}
 	}
 	m1->length = count * sizeof(int);
 	return count;
 }
 
-
-int showResult(MemBlock* m1) {
-	int length = m1->length/sizeof(unsigned int);
-	FileNode tmpf;
-	FILE* filenameindex=fopen(fcontainer,"rb");
-	unsigned int* tmp = (unsigned int*)(m1->block);
+void matchFilenamesForResults(SearchResult* res, const char* fcontainer) {
+	int length = res->resultcount;
+	//FileNode tmpf;
+	fstream filenameindex(fcontainer, ios::in|ios::binary);
+	unsigned int *tmp;
 	unsigned int filenumber;
-
-	for(int i=0; i<length; i++) {
-		filenumber=getfilenumber(tmp[i]);
-		fseek(filenameindex,filenumber*sizeof(FileNode),SEEK_SET);
-		fread(tmpf,sizeof(FileNode),1,filenameindex);
-		printf("%x\t->\t%s\n",filenumber,tmpf);
-	}
-	fclose(filenameindex);
-	return 0;
-}
-
-int showCompleteResult(SearchResult* abc)
-{
-	int i,length=abc->resultcount;
-	FileNode tmpf;
-	FILE* filenameindex=fopen(fcontainer,"rb");
-	unsigned int* tmp;
-	unsigned int filenumber;
-	tmp=abc->result_index;
-	printf("\n--------\nFind  %d results. Time elapse:%g s\n--------\n",length,abc->elapsetime);
+	tmp = res->result_index;
+	res->filenames = new FileNode[length];
+	//printf("\n--------\nFind  %d results. Time elapse:%g s\n--------\n",length,abc->elapsetime);
 	//memset(&tmpf,sizeof(FileNode),0);
-	for(i=0;i<length;i++)
-	{
-		filenumber=getfilenumber(tmp[i]);
-		fseek(filenameindex,filenumber*sizeof(FileNode),SEEK_SET);
-		fread(tmpf,sizeof(FileNode),1,filenameindex);
-		printf("%x\t->\t%s\n",filenumber,tmpf);
+	for(int i = 0; i < length; ++i) {
+		filenumber = getfilenumber(tmp[i]);
+		filenameindex.seekg(filenumber * sizeof(FileNode));
+		filenameindex.read((char*)&(res->filenames[i]), sizeof(FileNode));
+		//printf("%x\t->\t%s\n",filenumber,tmpf);
 	}
-	fclose(filenameindex);
-	return 0;
+	filenameindex.close();
 }
 
-CompareNode findKey(unsigned int key) {
+CompareNode findKey(unsigned int key, const char *fkeyindex) {
 	int l, m, r; // left, middle, right.
 	KeyNode tmpk;
 	CompareNode returnvalue;
-	FILE* keyindexf=fopen(fkeyindex,"rb");
+
 	returnvalue.n2 = 0;
 	returnvalue.n1 = 0;
 	
 	l = 1;
 	r = keynodelength - 1;
 	m = (l + r) / 2;
-	while(l<=m && m<=r) {
-		fseek(keyindexf,m*sizeof(KeyNode),SEEK_SET);
-		fread((char*)(&tmpk),sizeof(KeyNode),1,keyindexf);
-		if(tmpk.key == key) {
-			returnvalue.n1 = tmpk.start;
-			returnvalue.n2 = tmpk.length;
-			break;
+
+	ifstream keyindexf(fkeyindex, ios::in|ios::binary);
+	if (keyindexf.is_open()) {
+		while(l <= m && m <= r) {
+			keyindexf.seekg(m * sizeof(KeyNode), ios::beg);
+			keyindexf.read((char*)(&tmpk), sizeof(KeyNode));
+			if(tmpk.key == key) {
+				returnvalue.n1 = tmpk.start;
+				returnvalue.n2 = tmpk.length;
+				break;
+			}
+			else if(tmpk.key > key) {
+				r = m - 1; m = (l + r)/2;
+			}
+			else if(tmpk.key < key) {
+				l = m + 1; m=(l + r)/2;
+			}
 		}
-		else if(tmpk.key > key) {
-			r = m - 1; m = (l + r)/2;
-		}
-		else if(tmpk.key < key) {
-			l = m + 1; m=(l + r)/2;
-		}
+		keyindexf.close();
+	} else {
+		cout << "Unable to open file";
+		exit(0);
 	}
-	fclose(keyindexf);
 	return returnvalue;
 }
 
@@ -140,7 +133,74 @@ vector<TokenItem> * parseKeywords(const char* str) {
 	return result;
 }
 
-void search(SearchResult* abc, const char* keyword) {
+SearchResult *searchMultipleKeywords( 
+	const char* keyword,
+	const char* fkeyindex,
+	const char* fcompressed)
+{
+	string keywordstring(keyword);
+	cout<<"parse tree begin."<<endl;
+	KeywordTree *kt = parseKeywordTree(keywordstring);
+	cout<<"parse tree end."<<endl;
+	prepareCryptTable();
+	initSearch();
+	auto res = searchByKeywordTree(kt, fkeyindex, fcompressed);
+	delete kt;
+	return res;
+}
+
+SearchResult *searchByKeywordTree(
+	KeywordTree *kt,
+	const char* fkeyindex,
+	const char* fcompressed)
+{	
+	cout<<"Keytree type:"<<kt->type<<endl;
+	if(KT_STRING == kt->type){
+		SearchResult *res = new SearchResult();
+		//cout<< kt->keyword <<endl;
+		searchSingleKeyword(res, kt->keyword.c_str(), fkeyindex, fcompressed);
+		//cout<<kt->keyword<<  "...end;" <<endl;
+		shrinkSearchSingleKeyword(res);
+		return res;
+	} else if(KT_AND == kt->type){
+		//cout<<"AND here left "<< kt->left->keyword <<endl;
+		SearchResult *res1 = searchByKeywordTree(kt->left, fkeyindex, fcompressed);
+		if(res1->resultcount){
+			SearchResult *res2 = searchByKeywordTree(kt->right, fkeyindex, fcompressed);
+			if (res2->resultcount){
+				mergeSearchSingleAnd(res1, res2);
+			}
+			delete res2;
+		}
+		return res1;
+	} else if(KT_OR == kt->type){
+		//cout<<"here left "<< kt->left->keyword <<endl;
+		SearchResult *res1 = searchByKeywordTree(kt->left, fkeyindex, fcompressed);
+		//cout<<"here right"<<endl;
+		SearchResult *res2 = searchByKeywordTree(kt->right, fkeyindex, fcompressed);
+		//cout<<"here"<<endl;
+		if(res1->resultcount > 0 && res2->resultcount == 0){
+			delete res2;
+			return res1;
+		} else if(res1->resultcount == 0 && res2->resultcount > 0){
+			delete res1;
+			return res2;
+		} else {
+			mergeSearchSingleOr(res1, res2);
+			delete res2;
+			return res1;
+		}
+	} else {
+		return new SearchResult();
+	}
+}
+
+void searchSingleKeyword(
+	SearchResult* abc, 
+	const char* keyword,
+	const char* fkeyindex,
+	const char* fcompressed)
+{
 	CompareNode start_and_length;
 	MemBlock *m1, *m2;
 	StopWatch watch; // create a stopwatch.
@@ -148,16 +208,14 @@ void search(SearchResult* abc, const char* keyword) {
 	int lsize = keywords->size();
 
 	if (lsize > 0) {
-
-		start_and_length = findKey(keywords->at(0).hash);
-
+		start_and_length = findKey(keywords->at(0).hash, fkeyindex);
 		if(start_and_length.n2) {
-			m1 = getMemBlock(start_and_length);
+			m1 = getMemBlock(start_and_length, fcompressed);
 			for(int i=1; i<lsize; ++i) {
 			//debug_print("dealing with %d, size:%d...\n", keywords->at(i).hash, start_and_length.n2);
-				start_and_length = findKey(keywords->at(i).hash);
+				start_and_length = findKey(keywords->at(i).hash, fkeyindex);
 				if (start_and_length.n2) {
-					m2 = getMemBlock(start_and_length);
+					m2 = getMemBlock(start_and_length, fcompressed);
 					makeNext(m1);
 					size_t count = compareBlock(m1, m2);
 					if (!count) {				
@@ -169,14 +227,135 @@ void search(SearchResult* abc, const char* keyword) {
 				}
 			}
 			abc->result_index = (unsigned int *)m1->block;
-			abc->result = NULL;
+			m1->Lock();
+			//abc->result = NULL;
 			abc->resultcount = m1->length/sizeof(int);
+			delete m1;
 		}
 	} else {
 		abc->resultcount = 0;
 		abc->result_index = NULL;
-		abc->result = NULL;
+		//abc->result = NULL;
 	}
 	abc->elapsetime = watch.Stop();
 	delete keywords;
+	// before leaving, m1 & m1->block should be released properly. or leak here.
+}
+
+void shrinkSearchSingleKeyword(SearchResult* res) {
+	int len = res->resultcount;
+	if (len == 0) return;
+	unsigned int *cmp = res->result_index, *cur = res->result_index;
+	*cur = makeFileNode(getfilenumber(*cur), 0);
+	while (len-- > 0){
+		if (getfilenumber(*cmp) == getfilenumber(*cur)) {
+			++(*cur); // yes this equals to makeFileNode(getfilenumber(*cur), getfileoffset(*cur) + 1);
+		} else {
+			++cur;
+			*cur = makeFileNode(getfilenumber(*cmp), 1);
+		}
+		++cmp;
+	}
+	res->resultcount = cur - res->result_index + 1;
+}
+
+size_t mergeSearchSingleAnd(SearchResult* a, SearchResult* b){
+	int i = a->resultcount;
+	int j = b->resultcount;
+	if(i == 0){
+		return 0;
+	}
+	if(j == 0){
+		delete[] a->result_index;
+		a->result_index = NULL;
+		a->resultcount = 0;
+		return 0;
+	}
+	unsigned int *ap = a->result_index;
+	unsigned int *tmp = a->result_index;
+	unsigned int *bp = b->result_index;
+	unsigned int tmpa, tmpb;
+	size_t count = 0;
+	while(i > 0 && j > 0){
+		tmpa = getfilenumber(*ap);
+		tmpb = getfilenumber(*bp);
+		if (tmpa < tmpb){
+			--i;
+			++ap;
+		} else if (tmpa > tmpb){
+			--j;
+			++bp;
+		} else { // deal with equal. 
+			++count;
+			*tmp = makeFileNode(tmpa,1);
+			++tmp;
+			++ap;
+			++bp;
+			--i; --j;
+		}
+	}
+	a->resultcount = count;
+	return count;
+}
+
+size_t mergeSearchSingleOr(SearchResult* a, SearchResult* b){
+	int len1 = a->resultcount;
+	int len2 = b->resultcount;
+	int i = 0, j = 0;
+	unsigned int *ap = a->result_index;
+	unsigned int *bp = b->result_index;
+	unsigned int *tmp = new unsigned int[len1 + len2];
+	unsigned int tmpa, tmpb;
+	size_t count = 0;
+	unsigned int *newresult = tmp;
+
+	i = len1;
+	j = len2;
+
+	while(i > 0 && j > 0){
+		tmpa = getfilenumber(*ap);
+		tmpb = getfilenumber(*bp);
+		if (tmpa < tmpb){
+			*tmp = makeFileNode(tmpa, 1);
+			++tmp;
+			--i;
+			++ap;
+		} else if (tmpa > tmpb){
+			//cout<<"xxx"<<endl;
+			*tmp = makeFileNode(tmpb, 1);
+			++tmp;
+			--j;
+			++bp;
+		} else { // deal with equal.
+			*tmp = makeFileNode(tmpa, 1);
+			++tmp;
+			++ap;
+			++bp;
+			--i; --j;
+		}
+		++count;
+	}
+
+	// deal with remaining items.
+	while(i>0){
+		*tmp = *ap;
+		++tmp;
+		--i;
+		++ap;
+		++count;
+	}
+	while(j>0){
+		*tmp = *bp;
+		++tmp;
+		--j;
+		++bp;
+		++count;
+	}
+	
+	a->resultcount = count;
+	
+	delete[] a->result_index;
+	a->result_index = newresult;
+	cout<<"end or merge."<<count<<endl;
+	return count;
 }

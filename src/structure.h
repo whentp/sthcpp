@@ -1,9 +1,10 @@
 #ifndef _search__structure__
 #define _search__structure__
 
-#define getfilenumber(aaa) (aaa)>>16
-#define getfileoffset(aaa) ((aaa)<<16)>>16
-#define makeFileNode(a,b) ((a)<<16)+(b)
+#define getfilenumber(aaa) ((aaa)>>16)
+#define getfileoffset(aaa) (((aaa)<<16)>>16)
+
+#define makeFileNode(fileindex, offset) (((fileindex)<<16)+(offset))
 
 struct IndexNode {
 	unsigned int file;
@@ -19,6 +20,7 @@ struct KeyNode {
 	unsigned int key;
 	int start;
 	int length;
+	//int type; ///< the type of a keynode. 0: normal, 1: using zlib, maybe.
 };
 
 typedef char FileNode[64];
@@ -27,7 +29,9 @@ struct SearchResult {
 	int resultcount;
 	double elapsetime;
 	unsigned int* result_index;
-	FileNode* result;
+	FileNode* filenames;
+	SearchResult(): resultcount(0), result_index(NULL), filenames(NULL){}
+	~SearchResult();
 };
 
 struct MemBlock {
@@ -35,8 +39,9 @@ struct MemBlock {
 	int flag;
 	char* block;
 	MemBlock(size_t size);
-	MemBlock();
+	MemBlock(): MemBlock(0) {}
 	~MemBlock();
+	void Lock(); ///< lock block and do not release block when destructor is called.
 	void Free();
 };
 

@@ -42,3 +42,5 @@ dist/*
 .project*
 *.index
 test_data/*
+index_files/*
+*.stackdump
