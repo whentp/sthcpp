@@ -1,0 +1,11 @@
+PROJECT_NAME           = "Doxygen Comment Example"
+PROJECT_NUMBER         = "Version 1.0"
+INPUT                  = src/
+OUTPUT_DIRECTORY       = doc
+TAB_SIZE               = 4
+EXTRACT_ALL            = YES
+BUILTIN_STL_SUPPORT    = YES
+WARNINGS               = YES
+GENERATE_LATEX         = NO
+SORT_MEMBER_DOCS       = NO
+REPEAT_BRIEF           = YES
