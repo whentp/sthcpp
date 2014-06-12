@@ -20,15 +20,15 @@ namespace bible{
 
 	class Searcher{
 		private:
-			const char* _fcontainer;
-			const char* _fkeyindex;
-			const char* _fcompressed;
+			string _fcontainer;
+			string _fkeyindex;
+			string _fcompressed;
 			KeyIndex *_keyindex;
 		public:
 			Searcher(
-					const char* fcontainer,
-					const char* fkeyindex,
-					const char* fcompressed);
+					const char* fcontainerstr,
+					const char* fkeyindexstr,
+					const char* fcompressedstr);
 			~Searcher();
 			SearchResult *Search(const char *keyword_str);
 			void MatchFilenames(SearchResult* res);

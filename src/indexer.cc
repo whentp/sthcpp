@@ -81,7 +81,11 @@ namespace bible{
 		return tmpint;
 	}
 
-	int compressIndex(const char * filename_raw, const char * filename_compress, const char * filename_keyindex) {
+	int compressIndex(
+			const char * filename_raw,
+			const char * filename_compress,
+			const char * filename_keyindex)
+	{
 		int filelength = getFileLength(filename_raw);
 		int tmpint = filelength / sizeof(CompareNode);
 		int currentp = 0, m1;
@@ -125,10 +129,13 @@ namespace bible{
 	void mergeIndex(
 			const char * container1,
 			const char * container2,
+			const char * tmpcontainer,
 			const char * keyindex1,
 			const char * keyindex2,
+			const char * tmpkeyindex,
 			const char * compressed1,
-			const char * compressed2)
+			const char * compressed2,
+			const char * tmpcompressed)
 	{
 		cout << container1 << endl;
 		cout << container2 << endl;
@@ -141,7 +148,7 @@ namespace bible{
 		size_t len2 = getFileLength(container2);
 
 		// merge two container. simple.
-		fstream file("tmp_container", ios::out|ios::binary|ios::ate);
+		fstream file(tmpcontainer, ios::out|ios::binary|ios::ate);
 		if (file.is_open()) {
 			char *block = new char[len1];
 			fstream freader(container1, ios::in|ios::binary);
@@ -172,8 +179,8 @@ namespace bible{
 		unsigned int file_number_offset = makeFileNode(len1 / sizeof(FileNode), 0);
 		// a little dangder. generate an offset used for calculate new file numbers.
 
-		fstream newkey("tmp_key", ios::out|ios::binary);
-		fstream newcompressed("tmp_compressed", ios::out|ios::binary);
+		fstream newkey(tmpkeyindex, ios::out|ios::binary);
+		fstream newcompressed(tmpcompressed, ios::out|ios::binary);
 		len1 = getFileLength(keyindex1);
 		len2 = getFileLength(keyindex2);
 		fstream fk1(keyindex1, ios::in|ios::binary);
@@ -197,6 +204,7 @@ namespace bible{
 		len1 /= sizeof(KeyNode);
 		len2 /= sizeof(KeyNode);
 		while(i < len1 || j < len2){
+			//cout << "i="<< i << "/" << len1 << "\tj="<< j << "/" << len2 << endl;
 			if(tmpk1.key < tmpk2.key){
 				if (tmpk1.length > 0) {
 					b1 = new char[tmpk1.length];
@@ -209,6 +217,8 @@ namespace bible{
 				++i;
 				if(i < len1){
 					fk1.read((char*)&tmpk1, sizeof(KeyNode));
+				} else {
+					tmpk1.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
 				}
 			} else if(tmpk1.key > tmpk2.key){
 				if (tmpk2.length > 0) {
@@ -233,6 +243,8 @@ namespace bible{
 				++j;
 				if(j < len2){
 					fk2.read((char*)&tmpk2, sizeof(KeyNode));
+				} else {
+					tmpk2.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
 				}
 			} else {
 				if((tmpk1.length + tmpk2.length) > 0) {
@@ -265,12 +277,12 @@ namespace bible{
 				if(i < len1){
 					fk1.read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
-					tmpk1.key = -1; // is it safe? or UINT_MAX?
+					tmpk1.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
 				}
 				if(j < len2){
 					fk2.read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
-					tmpk2.key = -1; // is it safe? or UINT_MAX?
+					tmpk2.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
 				}
 			}
 		}

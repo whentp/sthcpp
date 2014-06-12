@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "file_op.h"
 #include "hash.h"
 #include "structure.h"
@@ -12,9 +13,10 @@
 namespace bible{
 
 	KeyIndex::KeyIndex(const char *fkeyindex){
+		//cout << "open keyindex: " << fkeyindex << endl;
 		keyindexf.open(fkeyindex, ios::in|ios::binary);
 		if (!keyindexf.is_open()) {
-			cout << "Unable to open file";
+			cout << "Unable to open keyindex file";
 			exit(0);
 		}
 		keynodelength = getFileLength(fkeyindex)/sizeof(KeyNode);
@@ -57,22 +59,31 @@ namespace bible{
 	Searcher::Searcher(const char* fcontainerstr,
 			const char* fkeyindexstr,
 			const char* fcompressedstr){
-		_fcontainer = fcontainerstr;
-		_fkeyindex = fkeyindexstr;
-		_fcompressed = fcompressedstr;
-		_keyindex = new KeyIndex(_fkeyindex);
+		string tmp = "";
+		_fcontainer = tmp + fcontainerstr;
+		_fkeyindex = tmp + fkeyindexstr;
+		_fcompressed = tmp + fcompressedstr;
+		//cout << _fcontainer << endl;
+		//cout << _fkeyindex << endl;
+		//cout << _fcompressed << endl;
+		//_keyindex = new KeyIndex(_fkeyindex);
 	}
 
 	Searcher::~Searcher(){
-		delete _keyindex;
+		//cout << "searcher destroyed." << endl;
+		//delete _keyindex;
 	}
 
 	SearchResult *Searcher::Search(const char *keyword_str){
-		return searchMultipleKeywords(keyword_str, _fkeyindex, _fcompressed);
+		//cout << "mmmmmmmmmmm" << endl;
+		//cout << "containerindex in .search.: " << this->_fcontainer << endl;
+		//cout << "keyindex in .search.: " << this->_fkeyindex << endl;
+		//cout << "compressed in .search.: " << this->_fcompressed << endl;
+		return searchMultipleKeywords(keyword_str, _fkeyindex.c_str(), _fcompressed.c_str());
 	}
 
 	void Searcher::MatchFilenames(SearchResult* res){
-		matchFilenamesForResults(res, _fcontainer);
+		matchFilenamesForResults(res, _fcontainer.c_str());
 	}
 
 	MemBlock* getMemBlock(CompareNode node, const char* fcompressindex) {
@@ -158,10 +169,11 @@ namespace bible{
 			const char* fkeyindex,
 			const char* fcompressed)
 	{
+		//cout << "keyindex in .searchMultipleKeywords.: " << fkeyindex << endl;
 		string keywordstring(keyword);
-		cout<<"parse tree begin."<<endl;
+		//cout<<"parse tree begin."<<endl;
 		KeywordTree *kt = parseKeywordTree(keywordstring);
-		cout<<"parse tree end."<<endl;
+		//cout<<"parse tree end."<<endl;
 		prepareCryptTable();
 		//initSearch();
 		auto res = searchByKeywordTree(kt, fkeyindex, fcompressed);
@@ -173,7 +185,8 @@ namespace bible{
 			KeywordTree *kt,
 			const char* fkeyindex,
 			const char* fcompressed)
-	{	
+	{
+		//cout << ">keyindex in ..: " << fkeyindex << endl;
 		//cout<<"Keytree type:"<<kt->type<<endl;
 		if(KT_STRING == kt->type){
 			SearchResult *res = new SearchResult();
@@ -233,6 +246,7 @@ namespace bible{
 		int lsize = keywords->size();
 
 		if (lsize > 0) {
+			//cout << "here...." << fkeyindex << fcompressed << endl;
 			KeyIndex key_finder(fkeyindex);
 			start_and_length = key_finder.Find(keywords->at(0).hash);
 			if(start_and_length.n2) {
@@ -381,7 +395,7 @@ namespace bible{
 
 		delete[] a->result_index;
 		a->result_index = newresult;
-		cout<<"end or merge."<<count<<endl;
+		//cout<<"end or merge."<<count<<endl;
 		return count;
 	}
 
@@ -426,7 +440,7 @@ namespace bible{
 		}
 
 		a->resultcount = count;
-		cout<<"end sub merge."<<count<<endl;
+		//cout<<"end sub merge."<<count<<endl;
 		return count;
 	}
 } // end namespace bible.

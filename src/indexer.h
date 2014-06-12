@@ -53,10 +53,12 @@ namespace bible{
 	void mergeIndex(
 			const char * container1,
 			const char * container2,
+			const char * tmpcontainer,
 			const char * keyindex1,
 			const char * keyindex2,
+			const char * tmpkeyindex,
 			const char * compressed1,
-			const char * compressed2);
-
+			const char * compressed2,
+			const char * tmpcompressed);
 } // end namespace bible.
 #endif

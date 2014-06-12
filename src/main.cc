@@ -5,6 +5,8 @@
 #include "search.h"
 #include "hash.h"
 #include "common.h"
+#include "schedule.h"
+#include "file_op.h"
 
 using namespace std;
 using namespace bible;
@@ -12,9 +14,9 @@ typedef void(*pointer_of_function)(int, char const *[]);
 
 void showUsage(){
 	char usagestr[] = "Usage:\n"
-		"main_executable_program create|merge|search\n\n"
-		"create: add new files to a new index. each index contains a container, keyindex and compressed index.\n"
-		"merge: merge two indexes to one temporary index.\n"
+		"main_executable_program add|merge|search\n\n"
+		"create: index new files to a new index. The length of each filename should be less than 60 bytes (including path). The size of each file should be less than 60k.\n"
+		//"merge: merge two indexes to one temporary index.\n"
 		"search: search an index.\n";
 
 	cout<<usagestr<<endl;
@@ -22,23 +24,24 @@ void showUsage(){
 
 void actionCreateIndex(int argc, char const *argv[]){
 	string filename;
-	//printf("Add files to index...\n");
-	prepareCryptTable();
-
+	Schedule *indexer = new Schedule("index_files/");
+	indexer->Start();
 	while(cin>>filename) {
-		addFileToIndex(filename.c_str(), "raw.index", "container.index");
+		indexer->AddFile(filename.c_str());
 	}
-
-	sortIndex("raw.index");
-	compressIndex("raw.index", "compress.index", "keyindex.index");
+	indexer->Commit();
+	delete indexer;
 }
 
 void actionMergeIndexes(int argc, char const *argv[]){
-	if (argc < 7){
-		cout << "usage: merge container1, container2, keyindex1, keyindex2, compressed1, compressed2" <<endl;
+	if (argc < 10){
+		cout << "usage: merge container1 container2 to_container keyindex1 keyindex2 to_keyindex compressed1 compressed2 to_compressed" <<endl;
 		return;
 	}
-	mergeIndex(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+	mergeIndex(
+			argv[1], argv[2], argv[3], 
+			argv[4], argv[5], argv[6], 
+			argv[7], argv[8], argv[9]);
 
 	cout<<"merge ok."<<endl;
 }
@@ -50,12 +53,13 @@ void actionSearch(int argc, char const *argv[]){
 	cout<<"start searching..."<<endl;
 	StopWatch watch;
 
-	auto searcher = new Searcher("container.index", "keyindex.index", "compress.index");
+	string directory = "index_files/";
+	auto searcher = new Schedule(directory);
+	searcher->PrepareSearchers();
 	auto res = searcher->Search(str);
-	searcher->MatchFilenames(res);
+
 	res->elapsetime = watch.Stop();
 
-	// display results.
 	for(int i = 0; i < res->resultcount; ++i){
 		cout << res->filenames[i] 
 			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
@@ -91,16 +95,24 @@ void actionSearchSingle(int argc, char const *argv[]){
 	cout<<"end."<<endl;
 }
 
-
-
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
-	///////////////// to do
+	string filename;
+	Schedule *aaa = new Schedule("index_files/");
+	//int x= 2;
+	aaa->Start();
+	while(cin>>filename) {
+		aaa->AddFile(filename.c_str());//, "raw.index", "container.index");
+		//if ((x++%5) == 0)
+	}
+	aaa->Commit();
+	delete aaa;
 	cout << "end testing." << endl;
+
 }
 
 map<string, pointer_of_function> actions = {
-	{"create",	actionCreateIndex},
+	{"add",	actionCreateIndex},
 	{"merge",	actionMergeIndexes},
 	{"search",	actionSearch},
 	{"searchsingle",	actionSearchSingle},

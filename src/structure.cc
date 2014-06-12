@@ -3,12 +3,6 @@
 #include <malloc.h>
 #include "structure.h"
 namespace bible{
-	const char* fkeyindex="keyindex.index";
-	const char* fcontainer="container.index";
-	const char* fraw="raw.index";
-	const char* fcompressindex="compress.index";
-	int keynodelength;
-
 	/**
 	 * compareindex: compare two node.
 	 * @param[in] a 

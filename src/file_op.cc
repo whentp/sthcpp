@@ -1,10 +1,18 @@
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <vector>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "file_op.h"
 #include "common.h"
+
+//#ifdef __posix
+#include <dirent.h>
+//#else
+//#include "dirent.h"
+//#endif
 
 namespace bible{
 	using namespace std;
@@ -14,7 +22,7 @@ namespace bible{
 		}
 	}
 	void createEmptyFile(const char* filename) {
-		FILE* tmp=fopen(filename,"w");
+		FILE* tmp = fopen(filename,"w");
 		fclose(tmp);
 	}
 
@@ -48,4 +56,24 @@ namespace bible{
 			return buf.st_size;
 		}
 	}
+
+	vector<string> *getFilesInDirectory(const char *directory) {
+		DIR *dir;
+		struct dirent *ent;
+		struct stat eStat;
+
+		auto res = new vector<string>;
+		if ((dir = opendir(directory)) != NULL) {
+			while ((ent = readdir (dir)) != NULL) {
+				lstat(ent->d_name, &eStat);
+				//cout << ent->d_name << "\t" << S_ISDIR(eStat.st_mode)<<endl;
+				//if(!S_ISDIR(eStat.st_mode)){
+				res->push_back(ent->d_name);
+				//}
+			}
+			closedir (dir);
+		}
+		return res;
+	}
+
 } // end namespace bible.
