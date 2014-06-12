@@ -46,7 +46,7 @@ namespace bible{
 		int flag;
 		char* block;
 		MemBlock(size_t size);
-		MemBlock(): MemBlock(0) {}
+		MemBlock() { MemBlock(0); }
 		~MemBlock();
 		void Lock(); ///< lock block and do not release block when destructor is called.
 		void Free();
