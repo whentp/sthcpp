@@ -29,6 +29,15 @@ namespace bible{
 			void AddFile(const char *filename);
 
 			/**
+			 * @brief Add a text to index
+			 * @details the length of the given filename should be less than 60 bytes.
+			 * 
+			 * @param[in] key a key string
+			 * @param[in] value a value string
+			 */
+			void AddText(const char *key, const char *value);
+
+			/**
 			 * @brief Commit all changes. Then the added files can be searched.
 			 */
 			void Commit();

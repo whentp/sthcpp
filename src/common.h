@@ -12,5 +12,13 @@ namespace bible{
 			StopWatch();
 			double Stop();
 	};
+
+// file extensions.
+extern const char *file_ext_container_key;
+extern const char *file_ext_container_value;
+extern const char *file_ext_keyindex;
+extern const char *file_ext_compressedindex;
+
 } // end namespace bible.
+
 #endif

@@ -14,24 +14,25 @@
 namespace bible{
 	using namespace std;
 
-	/************************************/
-
-	void addFileToIndex(const char * filename, const char * to, const char * fcontainer) {
-		char * raw_string = NULL;
-		size_t filelength = 0;
+	void addTextToIndex(
+		const char *keystr,
+		const char *valuestr,
+		const char *to,
+		const char *fcontainer)
+	{
+		const char * raw_string = valuestr;
+		size_t length = 0;
 
 		Container tmpcontainer(fcontainer);
 
-		unsigned int file_number = tmpcontainer.GetFileNumber(filename);
+		unsigned int file_number = tmpcontainer.GetFileNumber(keystr);
 		//cout << file_number << endl;
 		ensureFileExists(to);
 
-		loadFile(filename, raw_string, filelength);
+		length = strlen(raw_string);
 
 		auto tokenizer = new TokenizerEnglish();
 		auto hashlist = tokenizer->Tokenize(raw_string);
-
-		delete[] raw_string;
 
 		for (auto item = hashlist->begin(); item != hashlist->end(); ++item) {
 			// donno how to convert item to void*. therefore write an ugly line.
@@ -44,17 +45,31 @@ namespace bible{
 			if (file.is_open()) {
 				file.write((const char *)(&((*hashlist)[0])),sizeof(IndexNode) * hashlist->size());
 				file.close();
-				printf("Processing %s, length: %zu bytes. %f\n", filename, filelength, (double)hashlist->size() * sizeof(IndexNode) / filelength);
+				cout << "Processing " << keystr 
+				<< ", length: " << length << " bytes, ratio: " 
+				<< (double)hashlist->size() * sizeof(IndexNode) / length << endl;
 			}
 		}
 		delete hashlist;
 		//any leak?
 	}
 
+	void addFileToIndex(
+		const char * filename,
+		const char * to,
+		const char * fcontainer)
+	{
+		char * raw_string = NULL;
+		size_t filelength = 0;
+		loadFile(filename, raw_string, filelength);
+		addTextToIndex(filename, raw_string, to, fcontainer);
+		delete[] raw_string;
+	}
+
 	int sortIndex(const char * filename) {
-		int filelength=getFileLength(filename);
-		int tmpint=filelength/sizeof(CompareNode);
-		FILE* filenameindex=fopen(filename,"rb+");
+		int filelength = getFileLength(filename);
+		int tmpint = filelength / sizeof(CompareNode);
+		FILE* filenameindex = fopen(filename,"rb+"); // errr... i use c here just because i donno the alternative for "rb+" in c++.
 		auto tmp = new CompareNode[tmpint];
 
 		printf("Sort index start...\n");
@@ -73,9 +88,9 @@ namespace bible{
 	}
 
 	int compressIndex(
-			const char * filename_raw,
-			const char * filename_compress,
-			const char * filename_keyindex)
+		const char * filename_raw,
+		const char * filename_compress,
+		const char * filename_keyindex)
 	{
 		int filelength = getFileLength(filename_raw);
 		int tmpint = filelength / sizeof(CompareNode);
@@ -91,7 +106,7 @@ namespace bible{
 		fclose(filenameindex);
 		compressf=fopen(filename_compress,"wb");
 		rewind(compressf);
-		keyf=fopen(filename_keyindex,"wb");
+		keyf = fopen(filename_keyindex,"wb");
 		tmpkeynode.key = 0;
 		tmpkeynode.start = 0;
 		tmpkeynode.length = 0;
@@ -118,15 +133,15 @@ namespace bible{
 	}
 
 	void mergeIndex(
-			const char * container1,
-			const char * container2,
-			const char * tmpcontainer,
-			const char * keyindex1,
-			const char * keyindex2,
-			const char * tmpkeyindex,
-			const char * compressed1,
-			const char * compressed2,
-			const char * tmpcompressed)
+		const char * container1,
+		const char * container2,
+		const char * tmpcontainer,
+		const char * keyindex1,
+		const char * keyindex2,
+		const char * tmpkeyindex,
+		const char * compressed1,
+		const char * compressed2,
+		const char * tmpcompressed)
 	{
 		cout << container1 << endl;
 		cout << container2 << endl;
@@ -145,9 +160,9 @@ namespace bible{
 		len1 = container.Merge(container2);
 		container.Close();
 
-		string tmp1 = ".container";
+		string tmp1 = file_ext_container_key;//".container";
 		rename((container1 + tmp1).c_str(), (tmpcontainer + tmp1).c_str());
-		string tmp2 = ".barnvalue";
+		string tmp2 = file_ext_container_value; //".barnvalue";
 		rename((container1 + tmp2).c_str(), (tmpcontainer + tmp2).c_str());
 
 		unsigned int file_number_offset = makeFileNode(len1, 0);

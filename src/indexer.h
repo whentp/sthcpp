@@ -13,7 +13,7 @@ namespace bible{
 			const char* fcontainer);
 
 	/**
-	 * @brief add all tokens to a temporary file for further compressing.
+	 * @brief tokenize the content of a given file, then add all tokens to a temporary file for further compressing.
 	 * 
 	 * @param filename the original filename
 	 * @param to the temporary file.
@@ -23,6 +23,20 @@ namespace bible{
 			const char* filename,
 			const char* to,
 			const char* fcontainer);
+
+	/**
+	 * @brief add all tokens of a char* to a temporary file for further compressing.
+	 * 
+	 * @param keystr just a name.
+	 * @param valuestr the string that want to be indexed.
+	 * @param to the temporary file.
+	 * @param fcontainer the filename container.
+	 */
+	void addTextToIndex(
+		const char *keystr,
+		const char *valuestr,
+		const char *to,
+		const char *fcontainer);
 
 	int sortIndex(const char * filename);
 

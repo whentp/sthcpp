@@ -37,7 +37,7 @@ namespace bible{
 		ensureFileExists(filename_values);
 		_file_values.open(filename_values, ios::in | ios::out | ios::app | ios::binary | ios::ate);
 		if(!_file_values.is_open()){
-			cout << "open barn value file error." << endl;
+			cout << "open barn value file error. " << filename_values << endl;
 			exit(0);
 		}
 		_file_values_length = _file_values.tellg();
@@ -123,7 +123,7 @@ namespace bible{
 
 		file.open(filename_values, ios::in|ios::binary|ios::ate);
 		if(!file.is_open()){
-			cout << "open barn value file error." << endl;
+			cout << "open barn value file error. " << filename_values << endl;
 			exit(0);
 		}
 		tmplen = file.tellg();
