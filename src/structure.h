@@ -30,10 +30,10 @@ namespace bible{
 		//int type; ///< the type of a keynode. 0: normal, 1: using zlib, maybe.
 	};
 
-	typedef char FileNode[64];
+	typedef char* FileNode;
 
 	struct SearchResult {
-		int resultcount;
+		size_t resultcount;
 		double elapsetime;
 		unsigned int* result_index;
 		FileNode* filenames; ///< the filenames. Should be NULL before the matchfilenames is called.

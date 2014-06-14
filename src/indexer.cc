@@ -9,30 +9,21 @@
 #include "structure.h"
 #include "file_op.h"
 #include "common.h"
+#include "container.h"
+
 namespace bible{
 	using namespace std;
 
 	/************************************/
 
-	unsigned int getFileNumber(const char* filename, const char* fcontainer) {
-		unsigned int num;
-		FILE* fout;
-		FileNode filename_node = {0};
-		ensureFileExists(fcontainer);
-		num = getFileLength(fcontainer)/sizeof(FileNode);
-		fout = fopen(fcontainer, "rb+");
-		fseek(fout, 0, SEEK_END);
-		strcpy(filename_node, filename);
-		fwrite(filename_node, sizeof(FileNode), 1, fout);
-		fclose(fout);
-		return num;
-	}
-
 	void addFileToIndex(const char * filename, const char * to, const char * fcontainer) {
 		char * raw_string = NULL;
 		size_t filelength = 0;
 
-		unsigned int filecount = getFileNumber(filename, fcontainer);
+		Container tmpcontainer(fcontainer);
+
+		unsigned int file_number = tmpcontainer.GetFileNumber(filename);
+		//cout << file_number << endl;
 		ensureFileExists(to);
 
 		loadFile(filename, raw_string, filelength);
@@ -45,7 +36,7 @@ namespace bible{
 		for (auto item = hashlist->begin(); item != hashlist->end(); ++item) {
 			// donno how to convert item to void*. therefore write an ugly line.
 			TokenItem* current_item = &(*item);
-			current_item->offset = makeFileNode(filecount, current_item->offset);
+			current_item->offset = makeFileNode(file_number, current_item->offset);
 		}
 
 		if (hashlist->size()){
@@ -148,35 +139,18 @@ namespace bible{
 		size_t len2 = getFileLength(container2);
 
 		// merge two container. simple.
-		fstream file(tmpcontainer, ios::out|ios::binary|ios::ate);
-		if (file.is_open()) {
-			char *block = new char[len1];
-			fstream freader(container1, ios::in|ios::binary);
-			if (freader.is_open()) {
-				freader.read(block, len1);
-				freader.close();
-				file.write(block, len1);
-			} else {
-				throw "read file error";
-			}
-			delete[] block;
+		
+		Container container(container1);
 
-			block = new char[len2];
-			fstream freader2(container2, ios::in|ios::binary);
-			if (freader2.is_open()) {
-				freader2.read(block, len2);
-				freader2.close();
-				file.write(block, len2);
-			} else {
-				throw "read file error";
-			}
-			delete[] block;
-			file.close();
-		} else {
-			throw "open file error";
-		}
+		len1 = container.Merge(container2);
+		container.Close();
 
-		unsigned int file_number_offset = makeFileNode(len1 / sizeof(FileNode), 0);
+		string tmp1 = ".container";
+		rename((container1 + tmp1).c_str(), (tmpcontainer + tmp1).c_str());
+		string tmp2 = ".barnvalue";
+		rename((container1 + tmp2).c_str(), (tmpcontainer + tmp2).c_str());
+
+		unsigned int file_number_offset = makeFileNode(len1, 0);
 		// a little dangder. generate an offset used for calculate new file numbers.
 
 		fstream newkey(tmpkeyindex, ios::out|ios::binary);

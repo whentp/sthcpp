@@ -47,12 +47,10 @@ namespace bible{
 		auto files = FindIndexFiles();
 		for(size_t i = 0; i < files->size(); ++i){
 			string tmpstr = _directory + files->at(i).filename;
-			string container_str = tmpstr + ".container"; 
+			string container_str = tmpstr; // + ".container"; 
 			string keyindex_str = tmpstr + ".keyindex";
 			string compressed_str = tmpstr + ".compressedindex";
-			//cout << container_str << endl;
-			//cout << keyindex_str << endl;
-			//cout << compressed_str << endl;
+
 			Searcher *tmpsearcher = new Searcher(
 					container_str.c_str(),
 					keyindex_str.c_str(),
@@ -70,7 +68,7 @@ namespace bible{
 			_searchers->at(i)->MatchFilenames(result_piece);
 			results->push_back(result_piece);
 			count += result_piece->resultcount;
-			cout << count << endl;
+			//cout << count << endl;
 		}
 		auto merged_res = new SearchResult();
 		merged_res->result_index = new unsigned int[count];
@@ -98,7 +96,7 @@ namespace bible{
 		addFileToIndex(
 				filename,
 				(_directory + "tmp.raw").c_str(),
-				(_directory + "0.container").c_str());
+				(_directory + "0").c_str());
 	}
 
 	vector<ScheduleFileNode> *Schedule::FindIndexFiles(){
@@ -117,6 +115,8 @@ namespace bible{
 			string tmp = tmpfile.filename;
 			if( tmp.find("0") != string::npos){
 				rename((_directory + tmp + ".container").c_str(), (_directory + repeatChar(tmp.size()) + ".container").c_str());
+				rename((_directory + tmp + ".barnvalue").c_str(), (_directory + repeatChar(tmp.size()) + ".barnvalue").c_str());				
+				
 				rename((_directory + tmp + ".keyindex").c_str(), (_directory + repeatChar(tmp.size()) + ".keyindex").c_str());
 				rename((_directory + tmp + ".compressedindex").c_str(), (_directory + repeatChar(tmp.size()) + ".compressedindex").c_str());
 			}
@@ -147,15 +147,17 @@ namespace bible{
 			}
 			MergePair(_directory + a, _directory + b);
 
-			rename((_directory + "tmp_container").c_str(), (_directory + b + "0.container").c_str());
+			rename((_directory + "tmp_container.container").c_str(), (_directory + b + "0.container").c_str());
+			rename((_directory + "tmp_container.barnvalue").c_str(), (_directory + b + "0.barnvalue").c_str());
 			rename((_directory + "tmp_key").c_str(), (_directory + b + "0.keyindex").c_str());
 			rename((_directory + "tmp_compressed").c_str(), (_directory + b + "0.compressedindex").c_str());
 
-			remove((_directory + a + ".container").c_str());
+			//remove((_directory + a + ".container").c_str());
 			remove((_directory + a + ".keyindex").c_str());
 			remove((_directory + a + ".compressedindex").c_str());
 
 			remove((_directory + b + ".container").c_str());
+			remove((_directory + b + ".barnvalue").c_str());
 			remove((_directory + b + ".keyindex").c_str());
 			remove((_directory + b + ".compressedindex").c_str());
 
@@ -169,9 +171,10 @@ namespace bible{
 
 	void Schedule::MergePair(const string &a, const string &b){
 		mergeIndex(
-				(a+".container").c_str(),
-				(b+".container").c_str(),
-				(_directory + "tmp_container").c_str(),
+				//(a+".container").c_str(),
+				//(b+".container").c_str(),
+				//(_directory + "tmp_container").c_str(),
+				a.c_str(), b.c_str(), (_directory + "tmp_container").c_str(),
 				(a+".keyindex").c_str(),
 				(b+".keyindex").c_str(),
 				(_directory + "tmp_key").c_str(),

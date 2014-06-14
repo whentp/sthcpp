@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include "structure.h"
 namespace bible{
 	/**
@@ -46,7 +45,12 @@ namespace bible{
 
 	SearchResult::~SearchResult(){
 		if (result_index) delete[] result_index;
-		if(filenames) delete[] filenames;
+		if(filenames){
+			for(size_t i = 0; i < resultcount; ++i){
+				delete filenames[i];
+			}
+			delete[] filenames;
+		}
 	}
 
 } // end namespace bible.

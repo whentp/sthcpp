@@ -7,6 +7,7 @@
 #include "common.h"
 #include "schedule.h"
 #include "file_op.h"
+#include "barn.h"
 
 using namespace std;
 using namespace bible;
@@ -14,17 +15,22 @@ typedef void(*pointer_of_function)(int, char const *[]);
 
 void showUsage(){
 	char usagestr[] = "Usage:\n"
-		"main_executable_program add|merge|search\n\n"
-		"create: index new files to a new index. The length of each filename should be less than 60 bytes (including path). The size of each file should be less than 60k.\n"
-		//"merge: merge two indexes to one temporary index.\n"
-		"search: search an index.\n";
+		"bible <add>|<search> <index directory>\n\n"
+		"make sure that <index directory> exist. bible will not create this directory.\n"
+		"<add>: index new files. the size of each file should be less than 65536 bytes.\n"
+		"<search>: search an index.\n";
 
 	cout<<usagestr<<endl;
 }
 
 void actionCreateIndex(int argc, char const *argv[]){
+	if (argc < 2){
+		cout << "Usage:\n"
+		"bible add <index directory>" << endl;
+		return;
+	}
+	Schedule *indexer = new Schedule(argv[1]);
 	string filename;
-	Schedule *indexer = new Schedule("index_files/");
 	indexer->Start();
 	while(cin>>filename) {
 		indexer->AddFile(filename.c_str());
@@ -49,18 +55,24 @@ void actionMergeIndexes(int argc, char const *argv[]){
 void actionSearch(int argc, char const *argv[]){
 	char str[256];
 
+	if (argc < 2){
+		cout << "Usage:\n"
+		"bible search <index directory>" << endl;
+		return;
+	}
+
 	cin.get(str, 256);
 	cout<<"start searching..."<<endl;
 	StopWatch watch;
 
-	string directory = "index_files/";
+	string directory = argv[1];
 	auto searcher = new Schedule(directory);
 	searcher->PrepareSearchers();
 	auto res = searcher->Search(str);
 
 	res->elapsetime = watch.Stop();
 
-	for(int i = 0; i < res->resultcount; ++i){
+	for(size_t i = 0; i < res->resultcount; ++i){
 		cout << res->filenames[i] 
 			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
 	}
@@ -84,7 +96,7 @@ void actionSearchSingle(int argc, char const *argv[]){
 	shrinkSearchSingleKeyword(res);
 	matchFilenamesForResults(res, "container.index");
 	res->elapsetime = watch.Stop();
-	for(int i = 0; i < res->resultcount; ++i){
+	for(size_t i = 0; i < res->resultcount; ++i){
 		cout << res->filenames[i] 
 			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
 	}
@@ -97,16 +109,27 @@ void actionSearchSingle(int argc, char const *argv[]){
 
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
-	string filename;
-	Schedule *aaa = new Schedule("index_files/");
-	//int x= 2;
-	aaa->Start();
-	while(cin>>filename) {
-		aaa->AddFile(filename.c_str());//, "raw.index", "container.index");
-		//if ((x++%5) == 0)
-	}
-	aaa->Commit();
-	delete aaa;
+
+Barn tmp;
+tmp.Open("a.key", "a.value");
+
+tmp.Set("1111111", 8);
+tmp.Set("1111111s", 9);
+tmp.Set("a1111111s", 10);
+tmp.Set("111", 4);
+
+char *a; size_t i;
+
+tmp.Get(1, a, i);
+cout << a << "\tlen " << i << endl;
+
+tmp.Get(2, a, i);
+cout << a << "\tlen " << i << endl;
+
+tmp.Get(3, a, i);
+cout << a << "\tlen " << i << endl;
+
+
 	cout << "end testing." << endl;
 
 }

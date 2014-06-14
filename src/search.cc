@@ -10,6 +10,8 @@
 #include "search.h"
 #include "keyword_tree.h"
 #include "common.h"
+#include "container.h"
+
 namespace bible{
 
 	KeyIndex::KeyIndex(const char *fkeyindex){
@@ -145,17 +147,23 @@ namespace bible{
 
 	void matchFilenamesForResults(SearchResult* res, const char* fcontainer) {
 		int length = res->resultcount;
-		fstream filenameindex(fcontainer, ios::in|ios::binary);
+		//fstream filenameindex(fcontainer, ios::in|ios::binary);
 		unsigned int *tmp;
 		unsigned int filenumber;
 		tmp = res->result_index;
+
+		Container filenamefounder;
+		filenamefounder.Open(fcontainer);
+
 		res->filenames = new FileNode[length];
 		for(int i = 0; i < length; ++i) {
 			filenumber = getfilenumber(tmp[i]);
-			filenameindex.seekg(filenumber * sizeof(FileNode));
-			filenameindex.read((char*)&(res->filenames[i]), sizeof(FileNode));
+			//cout << filenumber << endl;
+			res->filenames[i] = (FileNode)filenamefounder.GetFilename(filenumber);
+			//filenameindex.seekg(filenumber * sizeof(FileNode));
+			//filenameindex.read((char*)&(res->filenames[i]), sizeof(FileNode));
 		}
-		filenameindex.close();
+		filenamefounder.Close();
 	}
 
 	vector<TokenItem> * parseKeywords(const char* str) {
