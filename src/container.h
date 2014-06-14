@@ -11,30 +11,30 @@ using namespace std;
 
 namespace bible{
 
-	class Container{
-	private:
-		string _filename_keys;
-		string _filename_values;
-		Barn _barn;
-	public:
-	//Container(
-	//	const char *filename_keys,
-	//	const char *filename_container): _filename_keys(filename_keys), _filename_values(filename_values){};
+/**
+ * @brief An ugly wrapper for barn.
+ */
+ class Container{
+ private:
+ 	string _filename_keys;
+ 	string _filename_values;
+ 	Barn _barn;
+ public:
+ 	
+ 	Container(const char *single_file_name);
+ 	Container(){};
+ 	~Container();
 
-		Container(const char *single_file_name);
-		Container(){};
-		~Container();
+ 	void Open(const char *single_file_name);
 
-		void Open(const char *single_file_name);
+ 	unsigned int GetFileNumber(const char *filename);
 
-		unsigned int GetFileNumber(const char *filename);
+ 	const char *GetFilename(size_t index);
 
-		const char *GetFilename(size_t index);
+ 	size_t Merge(const char *single_file_name);
 
-		size_t Merge(const char *single_file_name);
-
-		void Close();
-	};
+ 	void Close();
+ };
 
 
 } // end namespace bible.
