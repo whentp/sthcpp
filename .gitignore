@@ -45,3 +45,4 @@ test_data/*
 index_files/*
 *.stackdump
 build/*
+tool/*
