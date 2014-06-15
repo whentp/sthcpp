@@ -15,10 +15,10 @@ typedef void(*pointer_of_function)(int, char const *[]);
 
 void showUsage(){
 	char usagestr[] = "Usage:\n"
-		"bible <add>|<search> <index directory>\n\n"
-		"make sure that <index directory> exist. bible will not create this directory.\n"
-		"<add>: index new files. the size of each file should be less than 65536 bytes.\n"
-		"<search>: search an index.\n";
+	"bible <add>|<search> <index directory>\n\n"
+	"make sure that <index directory> exist. bible will not create this directory.\n"
+	"<add>: index new files. the size of each file should be less than 65536 bytes.\n"
+	"<search>: search an index.\n";
 
 	cout<<usagestr<<endl;
 }
@@ -45,9 +45,9 @@ void actionMergeIndexes(int argc, char const *argv[]){
 		return;
 	}
 	mergeIndex(
-			argv[1], argv[2], argv[3], 
-			argv[4], argv[5], argv[6], 
-			argv[7], argv[8], argv[9]);
+		argv[1], argv[2], argv[3], 
+		argv[4], argv[5], argv[6], 
+		argv[7], argv[8], argv[9]);
 
 	cout<<"merge ok."<<endl;
 }
@@ -74,71 +74,44 @@ void actionSearch(int argc, char const *argv[]){
 
 	for(size_t i = 0; i < res->resultcount; ++i){
 		cout << res->filenames[i] 
-			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
+		<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
 	}
 	cout << "Total " << res->resultcount << " result(s). Cost " 
-		<< res->elapsetime << " second(s)." << endl;
+	<< res->elapsetime << " second(s)." << endl;
 
 	delete res;
 	delete searcher;
 	cout<<"end."<<endl;
 }
 
-void actionSearchSingle(int argc, char const *argv[]){
-	char str[256];
-
-	cin.get(str, 256);
-	cout<<"start searching..."<<endl;
-
-	StopWatch watch;
-	SearchResult *res = new SearchResult();
-	searchSingleKeyword(res, str, "keyindex.index", "compress.index");
-	shrinkSearchSingleKeyword(res);
-	matchFilenamesForResults(res, "container.index");
-	res->elapsetime = watch.Stop();
-	for(size_t i = 0; i < res->resultcount; ++i){
-		cout << res->filenames[i] 
-			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
-	}
-	cout << "Total " << res->resultcount << " result(s). Cost " 
-		<< res->elapsetime << " second(s)." << endl;
-
-	delete res;
-	cout<<"end."<<endl;
-}
-
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
 
-Barn tmp;
-tmp.Open("a.key", "a.value");
+	Barn tmp;
+	tmp.Open("a.key", "a.value");
 
-tmp.Set("1111111", 8);
-tmp.Set("1111111s", 9);
-tmp.Set("a1111111s", 10);
-tmp.Set("111", 4);
+	tmp.Set("1111111", 8);
+	tmp.Set("1111111s", 9);
+	tmp.Set("a1111111s", 10);
+	tmp.Set("111", 4);
 
-char *a; size_t i;
+	char *a; size_t i;
 
-tmp.Get(1, a, i);
-cout << a << "\tlen " << i << endl;
+	tmp.Get(1, a, i);
+	cout << a << "\tlen " << i << endl;
 
-tmp.Get(2, a, i);
-cout << a << "\tlen " << i << endl;
+	tmp.Get(2, a, i);
+	cout << a << "\tlen " << i << endl;
 
-tmp.Get(3, a, i);
-cout << a << "\tlen " << i << endl;
-
-
+	tmp.Get(3, a, i);
+	cout << a << "\tlen " << i << endl;
 	cout << "end testing." << endl;
-
 }
 
 map<string, pointer_of_function> actions = {
 	{"add",	actionCreateIndex},
-	{"merge",	actionMergeIndexes},
+	//{"merge",	actionMergeIndexes},
 	{"search",	actionSearch},
-	{"searchsingle",	actionSearchSingle},
 	{"test",	actionTest}
 };
 

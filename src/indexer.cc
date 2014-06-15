@@ -25,7 +25,15 @@ namespace bible{
 
 		Container tmpcontainer(fcontainer);
 
+		unsigned int max_file_offset = getfileoffset(0xffffffff);
+		unsigned int max_file_number = getfilenumber(0xffffffff);
+
 		unsigned int file_number = tmpcontainer.GetFileNumber(keystr);
+
+		if (file_number >= max_file_number){
+			cout << "container full. cannot add file." << endl;
+			exit(0);
+		}
 		//cout << file_number << endl;
 		ensureFileExists(to);
 
@@ -34,20 +42,28 @@ namespace bible{
 		auto tokenizer = new TokenizerEnglish();
 		auto hashlist = tokenizer->Tokenize(raw_string);
 
+		unsigned int processed_token_count = 0;
+
 		for (auto item = hashlist->begin(); item != hashlist->end(); ++item) {
 			// donno how to convert item to void*. therefore write an ugly line.
 			TokenItem* current_item = &(*item);
 			current_item->offset = makeFileNode(file_number, current_item->offset);
+			++processed_token_count;
+			if(processed_token_count >= max_file_offset){
+				cout << "Only the first " 
+				<< processed_token_count << "tokens are indexed." << endl;
+				break;
+			}
 		}
 
 		if (hashlist->size()){
 			fstream file (to, ios::in|ios::out|ios::binary|ios::ate);
 			if (file.is_open()) {
-				file.write((const char *)(&((*hashlist)[0])),sizeof(IndexNode) * hashlist->size());
+				file.write((const char *)(&((*hashlist)[0])), sizeof(IndexNode) * processed_token_count);
 				file.close();
 				cout << "Processing " << keystr 
 				<< ", length: " << length << " bytes, ratio: " 
-				<< (double)hashlist->size() * sizeof(IndexNode) / length << endl;
+				<< (double)processed_token_count * sizeof(IndexNode) / length << endl;
 			}
 		}
 		delete hashlist;

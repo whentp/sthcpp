@@ -18,7 +18,7 @@ namespace bible{
 		//cout << "open keyindex: " << fkeyindex << endl;
 		keyindexf.open(fkeyindex, ios::in|ios::binary);
 		if (!keyindexf.is_open()) {
-			cout << "Unable to open keyindex file";
+			cout << "Unable to open keyindex file" << endl;
 			exit(0);
 		}
 		keynodelength = getFileLength(fkeyindex)/sizeof(KeyNode);
@@ -59,21 +59,30 @@ namespace bible{
 	}
 
 	Searcher::Searcher(const char* fcontainerstr,
-			const char* fkeyindexstr,
-			const char* fcompressedstr){
+		const char* fkeyindexstr,
+		const char* fcompressedstr){
 		string tmp = "";
-		_fcontainer = tmp + fcontainerstr;
-		_fkeyindex = tmp + fkeyindexstr;
-		_fcompressed = tmp + fcompressedstr;
+		_fcontainer = fcontainerstr;
+		_fkeyindex = fkeyindexstr;
+		_fcompressed = fcompressedstr;
 		//cout << _fcontainer << endl;
 		//cout << _fkeyindex << endl;
 		//cout << _fcompressed << endl;
-		//_keyindex = new KeyIndex(_fkeyindex);
+		_keyindex_finder = new KeyIndex(_fkeyindex.c_str());
+
+		_indexfile.open(_fcompressed.c_str(), ios::in|ios::binary);
+
+		if (!_indexfile.is_open()){
+			cout << "Unable to open file: " << _fcompressed;
+			exit(0);
+		}
+		prepareCryptTable();
 	}
 
 	Searcher::~Searcher(){
 		//cout << "searcher destroyed." << endl;
-		//delete _keyindex;
+		_indexfile.close();
+		delete _keyindex_finder;
 	}
 
 	SearchResult *Searcher::Search(const char *keyword_str){
@@ -81,30 +90,21 @@ namespace bible{
 		//cout << "containerindex in .search.: " << this->_fcontainer << endl;
 		//cout << "keyindex in .search.: " << this->_fkeyindex << endl;
 		//cout << "compressed in .search.: " << this->_fcompressed << endl;
-		return searchMultipleKeywords(keyword_str, _fkeyindex.c_str(), _fcompressed.c_str());
+		return SearchMultipleKeywords(keyword_str);
 	}
 
 	void Searcher::MatchFilenames(SearchResult* res){
 		matchFilenamesForResults(res, _fcontainer.c_str());
 	}
 
-	MemBlock* getMemBlock(CompareNode node, const char* fcompressindex) {
+	MemBlock *Searcher::GetMemBlock(CompareNode &node) {
 		if(node.n2 <= 0) {
 			return new MemBlock();
 		}
 
-		ifstream indexfile(fcompressindex, ios::in|ios::binary);
-
-		auto res = new MemBlock(node.n2);
-		if (indexfile.is_open()) {
-			indexfile.seekg(node.n1, ios::beg);
-			indexfile.read(res->block, node.n2);
-			indexfile.close();
-		}
-		else{
-			cout << "Unable to open file";
-			exit(0);
-		}
+		MemBlock *res = new MemBlock(node.n2);
+		_indexfile.seekg(node.n1, ios::beg);
+		_indexfile.read(res->block, node.n2);
 		return res;
 	}
 
@@ -146,7 +146,7 @@ namespace bible{
 	}
 
 	void matchFilenamesForResults(SearchResult* res, const char* fcontainer) {
-		int length = res->resultcount;
+		size_t length = res->resultcount;
 		//fstream filenameindex(fcontainer, ios::in|ios::binary);
 		unsigned int *tmp;
 		unsigned int filenumber;
@@ -156,12 +156,10 @@ namespace bible{
 		filenamefounder.Open(fcontainer);
 
 		res->filenames = new FileNode[length];
-		for(int i = 0; i < length; ++i) {
+		for(size_t i = 0; i < length; ++i) {
 			filenumber = getfilenumber(tmp[i]);
 			//cout << filenumber << endl;
 			res->filenames[i] = (FileNode)filenamefounder.GetFilename(filenumber);
-			//filenameindex.seekg(filenumber * sizeof(FileNode));
-			//filenameindex.read((char*)&(res->filenames[i]), sizeof(FileNode));
 		}
 		filenamefounder.Close();
 	}
@@ -172,39 +170,30 @@ namespace bible{
 		return result;
 	}
 
-	SearchResult *searchMultipleKeywords( 
-			const char* keyword,
-			const char* fkeyindex,
-			const char* fcompressed)
-	{
+	SearchResult *Searcher::SearchMultipleKeywords(const char* keyword){
 		//cout << "keyindex in .searchMultipleKeywords.: " << fkeyindex << endl;
 		string keywordstring(keyword);
 		//cout<<"parse tree begin."<<endl;
 		KeywordTree *kt = parseKeywordTree(keywordstring);
 		//cout<<"parse tree end."<<endl;
-		prepareCryptTable();
 		//initSearch();
-		auto res = searchByKeywordTree(kt, fkeyindex, fcompressed);
+		auto res = SearchByKeywordTree(kt);
 		delete kt;
 		return res;
 	}
 
-	SearchResult *searchByKeywordTree(
-			KeywordTree *kt,
-			const char* fkeyindex,
-			const char* fcompressed)
-	{
+	SearchResult *Searcher::SearchByKeywordTree(const KeywordTree *kt){
 		//cout << ">keyindex in ..: " << fkeyindex << endl;
 		//cout<<"Keytree type:"<<kt->type<<endl;
 		if(KT_STRING == kt->type){
 			SearchResult *res = new SearchResult();
-			searchSingleKeyword(res, kt->keyword.c_str(), fkeyindex, fcompressed);
+			SearchSingleKeyword(res, kt->keyword.c_str());
 			shrinkSearchSingleKeyword(res);
 			return res;
 		} else if(KT_AND == kt->type){
-			SearchResult *res1 = searchByKeywordTree(kt->left, fkeyindex, fcompressed);
+			SearchResult *res1 = SearchByKeywordTree(kt->left);
 			if(res1->resultcount){
-				SearchResult *res2 = searchByKeywordTree(kt->right, fkeyindex, fcompressed);
+				SearchResult *res2 = SearchByKeywordTree(kt->right);
 				if (res2->resultcount){
 					mergeSearchSingleAnd(res1, res2);
 				}
@@ -212,8 +201,8 @@ namespace bible{
 			}
 			return res1;
 		} else if(KT_OR == kt->type){
-			SearchResult *res1 = searchByKeywordTree(kt->left, fkeyindex, fcompressed);
-			SearchResult *res2 = searchByKeywordTree(kt->right, fkeyindex, fcompressed);
+			SearchResult *res1 = SearchByKeywordTree(kt->left);
+			SearchResult *res2 = SearchByKeywordTree(kt->right);
 			if(res1->resultcount > 0 && res2->resultcount == 0){
 				delete res2;
 				return res1;
@@ -226,8 +215,8 @@ namespace bible{
 				return res1;
 			}
 		} else if(KT_SUB == kt->type){
-			SearchResult *res1 = searchByKeywordTree(kt->left, fkeyindex, fcompressed);
-			SearchResult *res2 = searchByKeywordTree(kt->right, fkeyindex, fcompressed);
+			SearchResult *res1 = SearchByKeywordTree(kt->left);
+			SearchResult *res2 = SearchByKeywordTree(kt->right);
 			if(res1->resultcount == 0 || res2->resultcount == 0){
 				delete res2;
 				return res1;
@@ -241,29 +230,27 @@ namespace bible{
 		}
 	}
 
-	void searchSingleKeyword(
-			SearchResult* abc, 
-			const char* keyword,
-			const char* fkeyindex,
-			const char* fcompressed)
+	void Searcher::SearchSingleKeyword(
+		SearchResult* res, 
+		const char* keyword)
 	{
 		CompareNode start_and_length;
 		MemBlock *m1, *m2;
-		StopWatch watch; // create a stopwatch.
+		//StopWatch watch; // create a stopwatch.
 		vector<TokenItem> *keywords = parseKeywords(keyword);
 		int lsize = keywords->size();
 
 		if (lsize > 0) {
 			//cout << "here...." << fkeyindex << fcompressed << endl;
-			KeyIndex key_finder(fkeyindex);
-			start_and_length = key_finder.Find(keywords->at(0).hash);
+			//KeyIndex key_finder(fkeyindex);
+			start_and_length = _keyindex_finder->Find(keywords->at(0).hash);
 			if(start_and_length.n2) {
-				m1 = getMemBlock(start_and_length, fcompressed);
+				m1 = GetMemBlock(start_and_length);
 				for(int i=1; i<lsize; ++i) {
 					//debug_print("dealing with %d, size:%d...\n", keywords->at(i).hash, start_and_length.n2);
-					start_and_length = key_finder.Find(keywords->at(i).hash);
+					start_and_length = _keyindex_finder->Find(keywords->at(i).hash);
 					if (start_and_length.n2) {
-						m2 = getMemBlock(start_and_length, fcompressed);
+						m2 = GetMemBlock(start_and_length);
 						makeNext(m1);
 						size_t count = compareBlock(m1, m2);
 						if (!count) {				
@@ -274,17 +261,17 @@ namespace bible{
 						delete m2;
 					}
 				}
-				abc->result_index = (unsigned int *)m1->block;
+				res->result_index = (unsigned int *)m1->block;
 				m1->Lock();
-				abc->resultcount = m1->length/sizeof(int);
+				res->resultcount = m1->length/sizeof(int);
 				delete m1;
 			}
 		} else {
-			abc->resultcount = 0;
-			abc->result_index = NULL;
+			res->resultcount = 0;
+			res->result_index = NULL;
 			//abc->result = NULL;
 		}
-		abc->elapsetime = watch.Stop();
+		//res->elapsetime = watch.Stop();
 		delete keywords;
 		// before leaving, m1 & m1->block should be released properly. or leak here.
 	}
@@ -437,7 +424,6 @@ namespace bible{
 				--i; --j;
 			}
 		}
-
 		// deal with remaining items.
 		while(i>0){
 			*tmp = *ap;
