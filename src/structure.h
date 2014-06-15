@@ -39,7 +39,7 @@ namespace bible{
 		double elapsetime;
 		unsigned int* result_index;
 		FileNode* filenames; ///< the filenames. Should be NULL before the matchfilenames is called.
-		SearchResult(): resultcount(0), result_index(NULL), filenames(NULL){}
+		SearchResult(): resultcount(0), elapsetime(0), result_index(NULL), filenames(NULL){}
 		~SearchResult();
 	};
 
