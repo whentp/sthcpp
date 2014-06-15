@@ -50,8 +50,7 @@ namespace bible{
 			current_item->offset = makeFileNode(file_number, current_item->offset);
 			++processed_token_count;
 			if(processed_token_count >= max_file_offset){
-				cout << "Only the first " 
-				<< processed_token_count << "tokens are indexed." << endl;
+				cout << "Only the first " << processed_token_count << "tokens are indexed." << endl;
 				break;
 			}
 		}
@@ -83,12 +82,12 @@ namespace bible{
 	}
 
 	int sortIndex(const char * filename) {
-		int filelength = getFileLength(filename);
-		int tmpint = filelength / sizeof(CompareNode);
+		size_t filelength = getFileLength(filename);
+		size_t tmpint = filelength / sizeof(CompareNode);
 		FILE* filenameindex = fopen(filename,"rb+"); // errr... i use c here just because i donno the alternative for "rb+" in c++.
 		auto tmp = new CompareNode[tmpint];
 
-		printf("Sort index start...\n");
+		cout << "Sorting index... ";
 		fseek(filenameindex, 0, SEEK_SET);
 		rewind(filenameindex);
 		fread(tmp, sizeof(CompareNode), tmpint, filenameindex);
@@ -97,7 +96,7 @@ namespace bible{
 		rewind(filenameindex);
 		fwrite(tmp, sizeof(CompareNode), tmpint, filenameindex);
 		fclose(filenameindex);
-		printf("Sort index OK...\n");
+		cout << "OK." << endl;
 
 		delete[] tmp;
 		return tmpint;
@@ -108,43 +107,50 @@ namespace bible{
 		const char * filename_compress,
 		const char * filename_keyindex)
 	{
-		int filelength = getFileLength(filename_raw);
-		int tmpint = filelength / sizeof(CompareNode);
-		int currentp = 0, m1;
-		FILE* filenameindex;
-		FILE* compressf;
-		FILE* keyf;
+		size_t filelength = getFileLength(filename_raw);
+		size_t tmpint = filelength / sizeof(CompareNode);
+		unsigned int currentp = 0, m1;
+		//FILE* compressf;
+		//FILE* keyf;
 		KeyNode tmpkeynode;
+
+		cout << "Compressing index... ";
+
 		TokenItem *tmp = new TokenItem[tmpint];
-		filenameindex = fopen(filename_raw,"rb");
-		fseek(filenameindex,0,SEEK_SET);
-		fread(tmp,1,filelength,filenameindex);
-		fclose(filenameindex);
-		compressf=fopen(filename_compress,"wb");
-		rewind(compressf);
-		keyf = fopen(filename_keyindex,"wb");
+		ifstream filenameindex(filename_raw, ios::in|ios::binary);
+		//fseek(filenameindex,0,SEEK_SET);
+		filenameindex.read((char*)tmp, filelength);
+		filenameindex.close();
+
+		fstream compressf(filename_compress, ios::out|ios::binary);
+		compressf.seekp(0, ios::beg);
+		//rewind(compressf);
+
+		fstream keyf(filename_keyindex, ios::out|ios::binary);
+		keyf.seekp(0, ios::beg);
+		
 		tmpkeynode.key = 0;
 		tmpkeynode.start = 0;
 		tmpkeynode.length = 0;
-		for(int i = 0; i < tmpint; ++i) {
+		for(size_t i = 0; i < tmpint; ++i) {
 			if(tmpkeynode.key != tmp[i].hash) {
-				m1=ftell(compressf);
-				tmpkeynode.length=m1-currentp;
-				fwrite(&tmpkeynode,sizeof(tmpkeynode),1,keyf);
-				tmpkeynode.key=tmp[i].hash;
-				tmpkeynode.start=m1;
-				currentp=m1;
+				m1 = compressf.tellp();
+				tmpkeynode.length = m1 - currentp;
+				keyf.write((char*)&tmpkeynode, sizeof(KeyNode));
+				tmpkeynode.key = tmp[i].hash;
+				tmpkeynode.start = m1;
+				currentp = m1;
 			}
-			fwrite(&(tmp[i].offset),sizeof(int),1,compressf);
+			compressf.write((char*)&(tmp[i].offset), sizeof(unsigned int));
 		}
-		m1=ftell(compressf);
-		tmpkeynode.length=m1-currentp;
-		fwrite(&tmpkeynode,sizeof(tmpkeynode),1,keyf);
-		fclose(compressf);
-		fclose(keyf);
+		m1 = compressf.tellp();
+		tmpkeynode.length = m1 - currentp;
+		keyf.write((char*)&tmpkeynode, sizeof(KeyNode));
+		compressf.close();
+		keyf.close();
 		delete[] tmp;
 		remove(filename_raw);
-		printf("Compress index OK...\n");
+		cout << "OK." << endl;
 		return tmpint;
 	}
 
