@@ -8,6 +8,7 @@ AUX_SOURCE_DIRECTORY(
 ADD_DEFINITIONS(
     -std=c++11 # Or -std=c++0x
     -Wall
+    -O2
 )
 
 ADD_EXECUTABLE(bible ${SRC_LIST})
