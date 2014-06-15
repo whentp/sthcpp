@@ -1,8 +1,10 @@
 #ifndef _search__structure__
 #define _search__structure__
 
-#define getfilenumber(aaa) ((aaa)>>16) ///< Very important.
-#define getfileoffset(aaa) (((aaa)<<16)>>16) ///< Very important.
+#define FILE_TOKEN_COUNT_BIT_MAX 16 // NEVER touch here unless u know what u are doing.
+
+#define getfilenumber(aaa) ((aaa) >> FILE_TOKEN_COUNT_BIT_MAX) ///< Very important.
+#define getfileoffset(aaa) ((aaa) << (sizeof(unsigned int)*8 - FILE_TOKEN_COUNT_BIT_MAX) >> (sizeof(unsigned int)*8 - FILE_TOKEN_COUNT_BIT_MAX)) ///< Very important.
 
 #define makeFileNode(fileindex, offset) (((fileindex)<<16)+(offset))
 namespace bible{
@@ -25,8 +27,8 @@ namespace bible{
 
 	struct KeyNode {
 		unsigned int key;
-		int start;
-		int length;
+		unsigned int start;
+		unsigned int length;
 		//int type; ///< the type of a keynode. 0: normal, 1: using zlib, maybe.
 	};
 
@@ -42,7 +44,7 @@ namespace bible{
 	};
 
 	struct MemBlock {
-		int length;
+		unsigned int length;
 		int flag;
 		char* block;
 		MemBlock(size_t size);
@@ -52,6 +54,6 @@ namespace bible{
 		void Free();
 	};
 
-	int compareIndex(const CompareNode a, const CompareNode b);
+	bool compareIndex(const CompareNode a, const CompareNode b);
 } // end namespace bible.
 #endif

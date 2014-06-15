@@ -8,7 +8,7 @@ namespace bible{
 	 * @param[in] b 
 	 * @return -1: less than; 0: eq; 1 greater than
 	 */
-	int compareIndex(const CompareNode a, const CompareNode b){
+	bool compareIndex(const CompareNode a, const CompareNode b){
 		if (a.n1==b.n1) {
 			return a.n2 < b.n2;
 		}
