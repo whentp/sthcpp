@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "structure.h"
+
 namespace bible{
 	using namespace std;
 
@@ -11,8 +13,8 @@ namespace bible{
 	 * A TokenItem contains only the hashcode instead of a real string itself.
 	 * */
 	struct TokenItem{
-		int offset;
-		unsigned int hash;
+		BibleIntType offset;
+		BibleIntType hash;
 	};
 
 	class Tokenizer {		

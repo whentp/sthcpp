@@ -15,7 +15,7 @@ namespace bible{
 	public:
 		KeyIndex(const char *fkeyindex);
 		~KeyIndex();
-		CompareNode Find(unsigned int key);
+		CompareNode Find(BibleIntType key);
 	};
 
 	class Searcher{
@@ -45,7 +45,7 @@ namespace bible{
 	};
 
 	void makeNext(MemBlock* &m1);
-	int compareBlock(MemBlock* m1, MemBlock* m2);
+	size_t compareBlock(MemBlock* m1, MemBlock* m2);
 
 	vector<TokenItem> * parseKeywords(const char* str); 
 

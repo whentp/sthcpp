@@ -58,7 +58,7 @@ namespace bible{
 		Open(filename_keys, filename_values, mode);
 	}
 
-	size_t Barn::Set(const char* content, unsigned int length){
+	size_t Barn::Set(const char* content, size_t length){
 		BarnNode tmpnode;
 		_file_values.seekp(0, ios::end);
 		tmpnode.start = _file_values.tellp();

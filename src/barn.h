@@ -5,6 +5,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "structure.h"
+
 using namespace std;
 
 namespace bible{
@@ -19,8 +21,8 @@ namespace bible{
  * @brief A record for a given string. flag1 and flag2 have not been used. 
  */
  struct BarnNode{
- 	unsigned int start;
- 	unsigned int length;
+ 	BibleIntType start;
+ 	BibleIntType length;
 		unsigned int flag1; ///< not used
 		unsigned int flag2; ///< not used
 	};
@@ -66,7 +68,7 @@ namespace bible{
 
 		 void Get(size_t index, char * &to, size_t &length);
 
-		 size_t Set(const char* content, unsigned int length);
+		 size_t Set(const char* content, size_t length);
 
 	/**
 	 * @brief return _file_keys_length before merge

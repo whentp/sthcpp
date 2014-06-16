@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "barn.h"
+#include "structure.h"
 
 using namespace std;
 
@@ -27,9 +28,9 @@ namespace bible{
 
  	void Open(const char *single_file_name);
 
- 	unsigned int GetFileNumber(const char *filename);
+ 	BibleIntType GetFileNumber(const char *filename);
 
- 	const char *GetFilename(size_t index);
+ 	const char *GetFilename(BibleIntType index);
 
  	size_t Merge(const char *single_file_name);
 

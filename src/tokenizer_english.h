@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "tokenizer.h"
+#include "structure.h"
 
 namespace bible{
 

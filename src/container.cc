@@ -5,6 +5,7 @@
 #include "common.h"
 #include "barn.h"
 #include "container.h"
+#include "structure.h"
 
 using namespace std;
 
@@ -26,13 +27,13 @@ namespace bible{
 		_barn.Open(_filename_keys.c_str(), _filename_values.c_str());
 	}
 
-	unsigned int Container::GetFileNumber(const char *filename){
+	BibleIntType Container::GetFileNumber(const char *filename){
 	//Barn tmpbarn(_filename_keys.c_str(), _filename_values.c_str());
 		string tmpstr = filename;
 		return _barn.Set(tmpstr.c_str(), tmpstr.size() + 1);
 	}
 
-	const char *Container::GetFilename(size_t index){
+	const char *Container::GetFilename(BibleIntType index){
 		size_t i;
 		char *a;
 		_barn.Get(index, a, i);

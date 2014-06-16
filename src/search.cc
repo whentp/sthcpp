@@ -28,8 +28,8 @@ namespace bible{
 		keyindexf.close();
 	}
 
-	CompareNode KeyIndex::Find(unsigned int key){
-		int l, m, r; // left, middle, right.
+	CompareNode KeyIndex::Find(BibleIntType key){
+		size_t l, m, r; // left, middle, right.
 		KeyNode tmpk;
 		CompareNode returnvalue;
 
@@ -109,21 +109,21 @@ namespace bible{
 	}
 
 	void makeNext(MemBlock* &m1) {
-		unsigned int* tmp = (unsigned int*)(m1->block);
-		int length = m1->length/sizeof(int);
-		for(int i=0; i<length; ++i){
-			//printf("%x -> %x\n", tmp[i], tmp[i]+1);
+		BibleIntType* tmp = (BibleIntType*)(m1->block);
+		size_t length = m1->length/sizeof(BibleIntType);
+		while(length > 0){
 			++(*(tmp++));
+			--length;
 		}
 	}
 
-	int compareBlock(MemBlock* m1, MemBlock* m2) {
-		unsigned int* a = (unsigned int*)(m1->block);
-		unsigned int* b = (unsigned int*)(m2->block);
-		int i = m1->length/sizeof(int), j = m2->length/sizeof(int);
-		int count=0;
-		unsigned int* tmp;
-		tmp = (unsigned int*)m1->block;
+	size_t compareBlock(MemBlock* m1, MemBlock* m2) {
+		BibleIntType *a = (BibleIntType*)(m1->block);
+		BibleIntType *b = (BibleIntType*)(m2->block);
+		size_t i = m1->length / sizeof(BibleIntType), j = m2->length / sizeof(BibleIntType);
+		size_t count=0;
+		BibleIntType *tmp;
+		tmp = (BibleIntType*)m1->block;
 		while(i>0 && j>0) {
 			//debug_print("Comparing: %x, %x\n", *a, *b);
 			if (*a < *b) {
@@ -141,15 +141,15 @@ namespace bible{
 				++tmp;
 			}
 		}
-		m1->length = count * sizeof(int);
+		m1->length = count * sizeof(BibleIntType);
 		return count;
 	}
 
 	void matchFilenamesForResults(SearchResult* res, const char* fcontainer) {
 		size_t length = res->resultcount;
 		//fstream filenameindex(fcontainer, ios::in|ios::binary);
-		unsigned int *tmp;
-		unsigned int filenumber;
+		BibleIntType *tmp;
+		BibleIntType filenumber;
 		tmp = res->result_index;
 
 		Container filenamefounder;
@@ -238,7 +238,7 @@ namespace bible{
 		MemBlock *m1, *m2;
 		//StopWatch watch; // create a stopwatch.
 		vector<TokenItem> *keywords = parseKeywords(keyword);
-		int lsize = keywords->size();
+		size_t lsize = keywords->size();
 
 		if (lsize > 0) {
 			//cout << "here...." << fkeyindex << fcompressed << endl;
@@ -246,7 +246,7 @@ namespace bible{
 			start_and_length = _keyindex_finder->Find(keywords->at(0).hash);
 			if(start_and_length.n2) {
 				m1 = GetMemBlock(start_and_length);
-				for(int i=1; i<lsize; ++i) {
+				for(size_t i = 1; i < lsize; ++i) {
 					//debug_print("dealing with %d, size:%d...\n", keywords->at(i).hash, start_and_length.n2);
 					start_and_length = _keyindex_finder->Find(keywords->at(i).hash);
 					if (start_and_length.n2) {
@@ -261,9 +261,9 @@ namespace bible{
 						delete m2;
 					}
 				}
-				res->result_index = (unsigned int *)m1->block;
+				res->result_index = (BibleIntType *)m1->block;
 				m1->Lock();
-				res->resultcount = m1->length/sizeof(int);
+				res->resultcount = m1->length/sizeof(BibleIntType);
 				delete m1;
 			}
 		} else {
@@ -277,9 +277,9 @@ namespace bible{
 	}
 
 	void shrinkSearchSingleKeyword(SearchResult* res) {
-		int len = res->resultcount;
+		size_t len = res->resultcount;
 		if (len == 0) return;
-		unsigned int *cmp = res->result_index, *cur = res->result_index;
+		BibleIntType *cmp = res->result_index, *cur = res->result_index;
 		*cur = makeFileNode(getfilenumber(*cur), 0);
 		while (len-- > 0){
 			if (getfilenumber(*cmp) == getfilenumber(*cur)) {
@@ -294,8 +294,8 @@ namespace bible{
 	}
 
 	size_t mergeSearchSingleAnd(SearchResult* a, SearchResult* b){
-		int i = a->resultcount;
-		int j = b->resultcount;
+		size_t i = a->resultcount;
+		size_t j = b->resultcount;
 		if(i == 0){
 			return 0;
 		}
@@ -305,10 +305,10 @@ namespace bible{
 			a->resultcount = 0;
 			return 0;
 		}
-		unsigned int *ap = a->result_index;
-		unsigned int *tmp = a->result_index;
-		unsigned int *bp = b->result_index;
-		unsigned int tmpa, tmpb;
+		BibleIntType *ap = a->result_index;
+		BibleIntType *tmp = a->result_index;
+		BibleIntType *bp = b->result_index;
+		BibleIntType tmpa, tmpb;
 		size_t count = 0;
 		while(i > 0 && j > 0){
 			tmpa = getfilenumber(*ap);
@@ -333,15 +333,15 @@ namespace bible{
 	}
 
 	size_t mergeSearchSingleOr(SearchResult* a, SearchResult* b){
-		int len1 = a->resultcount;
-		int len2 = b->resultcount;
-		int i = 0, j = 0;
-		unsigned int *ap = a->result_index;
-		unsigned int *bp = b->result_index;
-		unsigned int *tmp = new unsigned int[len1 + len2];
-		unsigned int tmpa, tmpb;
+		size_t len1 = a->resultcount;
+		size_t len2 = b->resultcount;
+		size_t i = 0, j = 0;
+		BibleIntType *ap = a->result_index;
+		BibleIntType *bp = b->result_index;
+		BibleIntType *tmp = new BibleIntType[len1 + len2];
+		BibleIntType tmpa, tmpb;
 		size_t count = 0;
-		unsigned int *newresult = tmp;
+		BibleIntType *newresult = tmp;
 
 		i = len1;
 		j = len2;
@@ -395,15 +395,15 @@ namespace bible{
 	}
 
 	size_t mergeSearchSingleSub(SearchResult* a, SearchResult* b){
-		int i = a->resultcount;
-		int j = b->resultcount;
+		size_t i = a->resultcount;
+		size_t j = b->resultcount;
 		if (j == 0){
 			return i;
 		}
-		unsigned int *ap = a->result_index;
-		unsigned int *bp = b->result_index;
-		unsigned int *tmp = ap;
-		unsigned int tmpa, tmpb;
+		BibleIntType *ap = a->result_index;
+		BibleIntType *bp = b->result_index;
+		BibleIntType *tmp = ap;
+		BibleIntType tmpa, tmpb;
 		size_t count = 0;
 
 		while(i > 0 && j > 0){

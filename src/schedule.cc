@@ -72,7 +72,7 @@ void Schedule::PrepareSearchers(){
 			//cout << count << endl;
 		}
 		auto merged_res = new SearchResult();
-		merged_res->result_index = new unsigned int[count];
+		merged_res->result_index = new BibleIntType[count];
 		merged_res->filenames = new FileNode[count];
 		auto tmp_index = merged_res->result_index;
 		auto tmp_filenames = merged_res->filenames;
@@ -80,7 +80,7 @@ void Schedule::PrepareSearchers(){
 		for(auto &result_piece : *results){
 			memcpy((void*)tmp_index,
 				(void*)(result_piece->result_index),
-				result_piece->resultcount * sizeof(unsigned int));
+				result_piece->resultcount * sizeof(BibleIntType));
 			tmp_index += result_piece->resultcount;
 
 			memcpy((void*)tmp_filenames,
@@ -231,6 +231,4 @@ void Schedule::PrepareSearchers(){
 		}
 		return res;
 	}
-
-
 } // end namespace bible.

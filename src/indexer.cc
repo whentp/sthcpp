@@ -21,14 +21,15 @@ namespace bible{
 		const char *fcontainer)
 	{
 		const char * raw_string = valuestr;
-		size_t length = 0;
+		size_t length = strlen(raw_string);
+		if(!length) return;
 
 		Container tmpcontainer(fcontainer);
 
-		unsigned int max_file_offset = getfileoffset(0xffffffff);
-		unsigned int max_file_number = getfilenumber(0xffffffff);
+		BibleIntType max_file_offset = getfileoffset(MAX_BIBLE_INT_VALUE);
+		BibleIntType max_file_number = getfilenumber(MAX_BIBLE_INT_VALUE);
 
-		unsigned int file_number = tmpcontainer.GetFileNumber(keystr);
+		BibleIntType file_number = tmpcontainer.GetFileNumber(keystr);
 
 		if (file_number >= max_file_number){
 			cout << "container full. cannot add file." << endl;
@@ -37,12 +38,10 @@ namespace bible{
 		//cout << file_number << endl;
 		ensureFileExists(to);
 
-		length = strlen(raw_string);
-
 		auto tokenizer = new TokenizerEnglish();
 		auto hashlist = tokenizer->Tokenize(raw_string);
 
-		unsigned int processed_token_count = 0;
+		BibleIntType processed_token_count = 0;
 
 		for (auto item = hashlist->begin(); item != hashlist->end(); ++item) {
 			// donno how to convert item to void*. therefore write an ugly line.
@@ -58,11 +57,11 @@ namespace bible{
 		if (hashlist->size()){
 			fstream file (to, ios::in|ios::out|ios::binary|ios::ate);
 			if (file.is_open()) {
-				file.write((const char *)(&((*hashlist)[0])), sizeof(IndexNode) * processed_token_count);
+				file.write((const char *)(&((*hashlist)[0])), sizeof(TokenItem) * processed_token_count);
 				file.close();
 				cout << "Processing " << keystr 
 				<< ", length: " << length << " bytes, ratio: " 
-				<< (double)processed_token_count * sizeof(IndexNode) / length << endl;
+				<< (double)processed_token_count * sizeof(TokenItem) / length << endl;
 			}
 		}
 		delete hashlist;
@@ -75,13 +74,13 @@ namespace bible{
 		const char * fcontainer)
 	{
 		char * raw_string = NULL;
-		size_t filelength = 0;
+		size_t filelength;
 		loadFile(filename, raw_string, filelength);
 		addTextToIndex(filename, raw_string, to, fcontainer);
 		delete[] raw_string;
 	}
 
-	int sortIndex(const char * filename) {
+	size_t sortIndex(const char * filename) {
 		size_t filelength = getFileLength(filename);
 		size_t tmpint = filelength / sizeof(CompareNode);
 		FILE* filenameindex = fopen(filename,"rb+"); // errr... i use c here just because i donno the alternative for "rb+" in c++.
@@ -102,14 +101,14 @@ namespace bible{
 		return tmpint;
 	}
 
-	int compressIndex(
+	size_t compressIndex(
 		const char * filename_raw,
 		const char * filename_compress,
 		const char * filename_keyindex)
 	{
 		size_t filelength = getFileLength(filename_raw);
 		size_t tmpint = filelength / sizeof(CompareNode);
-		unsigned int currentp = 0, m1;
+		size_t currentp = 0, m1;
 		//FILE* compressf;
 		//FILE* keyf;
 		KeyNode tmpkeynode;
@@ -141,7 +140,7 @@ namespace bible{
 				tmpkeynode.start = m1;
 				currentp = m1;
 			}
-			compressf.write((char*)&(tmp[i].offset), sizeof(unsigned int));
+			compressf.write((char*)&(tmp[i].offset), sizeof(BibleIntType));
 		}
 		m1 = compressf.tellp();
 		tmpkeynode.length = m1 - currentp;
@@ -187,7 +186,7 @@ namespace bible{
 		string tmp2 = file_ext_container_value; //".barnvalue";
 		rename((container1 + tmp2).c_str(), (tmpcontainer + tmp2).c_str());
 
-		unsigned int file_number_offset = makeFileNode(len1, 0);
+		BibleIntType file_number_offset = makeFileNode(len1, 0);
 		// a little dangder. generate an offset used for calculate new file numbers.
 
 		fstream newkey(tmpkeyindex, ios::out|ios::binary);
@@ -229,7 +228,7 @@ namespace bible{
 				if(i < len1){
 					fk1.read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
-					tmpk1.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk1.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			} else if(tmpk1.key > tmpk2.key){
 				if (tmpk2.length > 0) {
@@ -238,8 +237,8 @@ namespace bible{
 
 					// the following section... urrrr... how can remove it when we do not need it.
 					// e.g. when every file_number is already unique.
-					int count = tmpk2.length / sizeof(int);
-					unsigned int *tmpadder = (unsigned int *)(b2);
+					size_t count = tmpk2.length / sizeof(BibleIntType);
+					BibleIntType *tmpadder = (BibleIntType *)(b2);
 					while(count-- > 0){
 						(*tmpadder) += file_number_offset;
 						++tmpadder;
@@ -255,7 +254,7 @@ namespace bible{
 				if(j < len2){
 					fk2.read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
-					tmpk2.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk2.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			} else {
 				if((tmpk1.length + tmpk2.length) > 0) {
@@ -269,8 +268,8 @@ namespace bible{
 					}
 					// do sth to the 2nd block.
 					// same to aforehead. how to remove it, because of the flexibility.
-					int count = tmpk2.length / sizeof(int);
-					unsigned int *tmpadder = (unsigned int *)(b1 + tmpk1.length);
+					size_t count = tmpk2.length / sizeof(BibleIntType);
+					BibleIntType *tmpadder = (BibleIntType *)(b1 + tmpk1.length);
 					while(count-- > 0){
 						(*tmpadder) += file_number_offset;
 						++tmpadder;
@@ -288,12 +287,12 @@ namespace bible{
 				if(i < len1){
 					fk1.read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
-					tmpk1.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk1.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 				if(j < len2){
 					fk2.read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
-					tmpk2.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk2.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			}
 		}
