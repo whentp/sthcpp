@@ -66,9 +66,9 @@ namespace bible{
 			);
 		 void Close();
 
-		 void Get(size_t index, char * &to, size_t &length);
+		 void Get(const size_t index, char * &to, size_t &length);
 
-		 size_t Set(const char* content, size_t length);
+		 size_t Set(const char* content, const size_t length);
 
 	/**
 	 * @brief return _file_keys_length before merge

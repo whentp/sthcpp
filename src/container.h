@@ -28,9 +28,28 @@ namespace bible{
 
  	void Open(const char *single_file_name);
 
+ 	/**
+ 	 * @brief return an id for a given string. this method is just for storing STRING.
+ 	 * pls specify length when u want to save binary stuff.
+ 	 * 
+ 	 * @param[in] filename the given string
+ 	 * 
+ 	 * @return the id
+ 	 */
  	BibleIntType GetFileNumber(const char *filename);
+ 	
+ 	/**
+ 	 * @brief return an id for a given block
+ 	 * 
+ 	 * @param[in] filename the given block
+ 	 * @param[in] length length of the given block
+ 	 * 
+ 	 * @return the id
+ 	 */
+ 	BibleIntType GetFileNumber(const char *filename, size_t length);
 
  	const char *GetFilename(BibleIntType index);
+ 	const char *GetFilename(BibleIntType index, size_t &length); ///< attention: length is a parameter for output.
 
  	size_t Merge(const char *single_file_name);
 

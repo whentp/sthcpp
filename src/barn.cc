@@ -58,7 +58,7 @@ namespace bible{
 		Open(filename_keys, filename_values, mode);
 	}
 
-	size_t Barn::Set(const char* content, size_t length){
+	size_t Barn::Set(const char* content, const size_t length){
 		BarnNode tmpnode;
 		_file_values.seekp(0, ios::end);
 		tmpnode.start = _file_values.tellp();
@@ -74,11 +74,11 @@ namespace bible{
 		return keylength / sizeof(BarnNode);
 	}
 
-	void Barn::Get(size_t index, char * &to, size_t &length){
+	void Barn::Get(const size_t index, char * &to, size_t &length){
 		if(index < _file_keys_length / sizeof(BarnNode)){
 			BarnNode tmpnode;
-			index = index * sizeof(BarnNode);
-			_file_keys.seekg(index, ios::beg);
+			size_t index_tmp = index * sizeof(BarnNode);
+			_file_keys.seekg(index_tmp, ios::beg);
 			_file_keys.read((char*)(&tmpnode), sizeof(BarnNode));
 			//cout << "read index:" << index 
 			//<< " start:" << tmpnode.start 
@@ -89,7 +89,7 @@ namespace bible{
 			_file_values.seekg(tmpnode.start, ios::beg);
 			_file_values.read(to, tmpnode.length);
 		} else {
-			cout << "Index out of range. index: " << index << "/" << _file_keys_length << endl;
+			cout << "Index out of range. index: " << index * sizeof(BarnNode) << "/" << _file_keys_length << endl;
 			exit(0);
 		}
 	}

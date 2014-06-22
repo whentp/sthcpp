@@ -33,10 +33,21 @@ namespace bible{
 		return _barn.Set(tmpstr.c_str(), tmpstr.size() + 1);
 	}
 
+	BibleIntType Container::GetFileNumber(const char *filename, size_t length){
+		return _barn.Set(filename, length);
+	}
+
 	const char *Container::GetFilename(BibleIntType index){
 		size_t i;
 		char *a;
 		_barn.Get(index, a, i);
+		//cout << "finding filename:" << index  << a << endl;
+		return a;
+	}
+
+	const char *Container::GetFilename(BibleIntType index, size_t &length){
+		char *a;
+		_barn.Get(index, a, length);
 		//cout << "finding filename:" << index  << a << endl;
 		return a;
 	}
