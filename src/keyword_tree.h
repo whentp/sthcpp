@@ -23,6 +23,12 @@ namespace bible{
 		~KeywordTree();
 	};
 
-	KeywordTree *parseKeywordTree(string str);
+	KeywordTree *parseKeywordTree(const string str);
+
+vector<string> *queryTokenizer(const string &str);
+
+KeywordTree *parseKeywordTreeStrict(const string &str);
+
+
 } // end namespace bible.
 #endif

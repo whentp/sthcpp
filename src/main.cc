@@ -9,6 +9,9 @@
 #include "file_op.h"
 #include "barn.h"
 
+//for testing
+#include "keyword_tree.h"
+
 using namespace std;
 using namespace bible;
 typedef void(*pointer_of_function)(int, char const *[]);
@@ -87,24 +90,14 @@ void actionSearch(int argc, char const *argv[]){
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
 
-	Barn tmp;
-	tmp.Open("a.key", "a.value");
+	string a = "\"hel(lo wo)rld|test\"|s(d|f)sdf&ss\"&&&\"&&";
 
-	tmp.Set("1111111", 8);
-	tmp.Set("1111111s", 9);
-	tmp.Set("a1111111s", 10);
-	tmp.Set("111", 4);
+	vector<string> *test1 = queryTokenizer(a);
+	for(auto &i : *test1){
+		cout << i << endl;
+	}
+	cout << "--------" << endl;
 
-	char *a; size_t i;
-
-	tmp.Get(1, a, i);
-	cout << a << "\tlen " << i << endl;
-
-	tmp.Get(2, a, i);
-	cout << a << "\tlen " << i << endl;
-
-	tmp.Get(3, a, i);
-	cout << a << "\tlen " << i << endl;
 	cout << "end testing." << endl;
 }
 
