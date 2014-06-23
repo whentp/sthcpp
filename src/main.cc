@@ -90,7 +90,7 @@ void actionSearch(int argc, char const *argv[]){
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
 
-	string a = "\"hel(lo wo)rld|test\"|s(d|f)sdf&ss\"&&&\"&&";
+	string a = "\"he\\tl(lo wo)rld|test\"|s(d|f)sdf&ss\"&&&\"&&";
 
 	vector<string> *test1 = queryTokenizer(a);
 	for(auto &i : *test1){

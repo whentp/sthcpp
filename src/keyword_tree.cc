@@ -1,3 +1,20 @@
+/**
+ * (C) Copyright 2014.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser General Public License
+ * (LGPL) version 3.0 which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/lgpl-3.0.html
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * Contributors:
+ *     whentp <tpsmsproject@gmail.com>
+ */
+
 #include <string>
 #include <iostream>
 #include <map>
@@ -45,23 +62,47 @@ namespace bible{
 		return res;
 	}
 
+	void escapeString(string &str, const map<char, char> &dict){
+		size_t previous = 0, current = 0;
+		while(current < str.size()){
+			if(str.at(current) == '\\'){
+				++current;
+				if(current < str.size()){
+					auto tmpfind = dict.find(str.at(current));
+					if(tmpfind != dict.end()){
+						str.at(previous) = tmpfind->second;
+						//++current;
+						//++previous;
+					} else {
+						throw "escape string error.";
+					}
+				}
+			} else {
+				str.at(previous) = str.at(current);
+			}
+			++current;
+			++previous;
+		}
+		str.resize(previous);
+	}
 
 	vector<string> *queryTokenizer(const string &str){
 		vector<string> *res = new vector<string>();
-		map<char, char> excape_chars = {
+		map<char, char> escape_chars = {
 			{'t','\t'},{'n','\n'},{'r','\r'},{'"','"'},{'\'','\''},
 			{'(','('},{'\\','\\'},{')',')'},
-			{'&','&'},{'|','|'},{'-','-'},{'^','^'}};
+			{'&','&'},{'|','|'},{'-','-'},{'^','^'}
+		};
 		map<char, bool> operators = {
 			{'&',true},{'|',true},{'-',true},
-			{'^',true},{'(',true},{')',true}};
+			{'^',true},{'(',true},{')',true}
+		};
 		map<char, bool> white_chars = {
-			{' ',true},{'\t',true},{'\n',true},{'\r',true}};
+			{' ',true},{'\t',true},{'\n',true},{'\r',true}
+		};
 
-		//cout << "start tokenizing: " << str << endl;
 		size_t current = 0, previous = 0;
 		bool is_quoted = false;
-		//bool is_escape = false;
 		while(current < str.size()){
 			previous = current;
 			while (current < str.size() && (is_quoted || operators.find(str.at(current)) == operators.end())) {
@@ -69,15 +110,13 @@ namespace bible{
 				while((previous == current) && white_chars.find(str.at(current)) != white_chars.end()){
 					++current;
 					previous = current;
-					//cout << "hi" << endl;
 				}
-				//cout << "non white start: " << current << "," << str.at(current) << endl;
 				if('\\' == str.at(current)){
-					//just skip it.
 					++current;
-					++current;
+					if(current < str.size()){
+						++current;
+					}
 				} else if('"' == str.at(current)){
-					//cout << "quote." << endl;
 					if(is_quoted){
 						break;
 					} else {
@@ -91,7 +130,6 @@ namespace bible{
 					++current;
 				}
 			}
-			//cout << current << "," << previous << "," << str.size() << "," << str.substr(previous, current - previous) << endl;
 			if(is_quoted){
 				is_quoted = false;
 				if(current < str.size()){
@@ -99,7 +137,7 @@ namespace bible{
 					++current;
 				} else {
 					if(current >= str.size()){
-						res->push_back(str.substr(previous));	
+						res->push_back(str.substr(previous));
 					} else {
 						res->push_back(str.substr(previous, current - previous));
 					}
@@ -110,10 +148,9 @@ namespace bible{
 						res->push_back(str.substr(previous, current - previous));
 					}
 					if(str.at(current) == '"'){
-						continue;
+						continue; // is it correct?!?!?!?!? yes. seriously.
 					}
 					res->push_back(str.substr(current, 1));
-					//cout << ".." << endl;
 				} else {
 					res->push_back(str.substr(previous, current - previous));
 				}
@@ -123,9 +160,25 @@ namespace bible{
 		return res;
 	}
 
+	void buildKeywordTree(const vector<string> *tokens){
+		int check_brackets = 0;
+		for(auto &str : *tokens){
+			if(str == "("){
+				++check_brackets;
+			} else if(str == ")"){
+				--check_brackets;
+			}
+			if(check_brackets < 0){
+				throw "unmatched bracket(s).";
+			}
+		}
+		if(check_brackets != 0){
+			throw "unmatched bracket(s).";
+		}	
+	}
+
 	KeywordTree *parseKeywordTreeStrict(const string &str){
 		return new KeywordTree();
 	}
-
 
 } // end namespace bible.
