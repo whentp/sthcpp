@@ -92,11 +92,17 @@ void actionTest(int argc, char const *argv[]){
 
 	string a = "\"he\\tl(lo wo)rld|test\"|s(d|f)sdf&ss\"&&&\"&&";
 
-	vector<string> *test1 = queryTokenizer(a);
+	/*vector<string> *test1 = queryTokenizer(a);
 	for(auto &i : *test1){
 		cout << i << endl;
 	}
-	cout << "--------" << endl;
+	cout << "--------" << endl;*/
+
+string aaa = "(aaaaaa)";
+KeywordTree *test = parseKeywordTreeStrict(aaa);
+
+printKeywordTree(test, 0);
+delete test;
 
 	cout << "end testing." << endl;
 }

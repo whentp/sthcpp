@@ -35,12 +35,8 @@ namespace bible{
 		if (right) delete right;
 	}
 
-	KeywordTree *parseKeywordTree(const string str){
+	KeywordTree *parseKeywordTreeRough(const string str){
 		KeywordTree *res = new KeywordTree();
-		// KT_SUB (-) has the lowest priority.
-		// KT_AND (&) has the highest priority.
-		//cout << "left\t" << str.substr(0, str.find("|")) <<endl;
-		//cout << "right\t" << str.substr(str.find("|")+1) <<endl;
 		if(str.find("-")!=string::npos){
 			res->type = KT_SUB;
 			res->left = parseKeywordTree(str.substr(0, str.find("-")));
@@ -71,8 +67,6 @@ namespace bible{
 					auto tmpfind = dict.find(str.at(current));
 					if(tmpfind != dict.end()){
 						str.at(previous) = tmpfind->second;
-						//++current;
-						//++previous;
 					} else {
 						throw "escape string error.";
 					}
@@ -160,7 +154,7 @@ namespace bible{
 		return res;
 	}
 
-	void buildKeywordTree(const vector<string> *tokens){
+	void checkBracktes(const vector<string> *tokens){
 		int check_brackets = 0;
 		for(auto &str : *tokens){
 			if(str == "("){
@@ -174,11 +168,140 @@ namespace bible{
 		}
 		if(check_brackets != 0){
 			throw "unmatched bracket(s).";
-		}	
+		}
+
+	}
+
+	KeywordTree *getKeywordNode(
+			const vector<string> *tokens,
+			const size_t start,
+			size_t &end)
+	{
+		if(tokens->size() <= start){
+			throw "build tree error.";
+		}
+		string current_token = tokens->at(start);
+		if("&" == current_token){
+			KeywordTree *res = new KeywordTree(KT_AND);
+			end = start + 1;
+			return res;
+		} else if("|" == current_token){
+			KeywordTree *res = new KeywordTree(KT_OR);
+			end = start + 1;
+			return res;
+		} else if("-" == current_token){
+			KeywordTree *res = new KeywordTree(KT_SUB);
+			end = start + 1;
+			return res;
+		}  else if("(" != current_token){
+			KeywordTree *res = new KeywordTree(KT_STRING);
+			res->keyword = current_token;
+			end = start + 1;
+			return res;
+		} else { //if("(" == current_token)
+			//deal with brackets.
+			int i = 0;
+			size_t paired_bracket = 0;
+			//cout << "start: "<< start <<", end: "<< tokens->size() << "current: " << tokens->at(start)<<endl;
+			for(paired_bracket = start; paired_bracket < tokens->size(); ++paired_bracket){
+				if(tokens->at(paired_bracket) == "("){
+					++i;
+				} else if(tokens->at(paired_bracket) == ")"){
+					--i;
+				}
+				if(i == 0){
+					break;
+				}
+			}
+			//cout << "paired close bracket:" << paired_bracket << endl;
+			if(1 == (paired_bracket - start)){
+				throw "nothing in brackets.";
+			}
+			KeywordTree *res = buildKeywordTree(tokens, start + 1, paired_bracket);
+			end = paired_bracket + 2;
+			return res;
+		}
+	}
+
+	KeywordTree *buildKeywordTree(
+			const vector<string> *tokens,
+			const size_t start,
+			const size_t end)
+	{
+		size_t stop = end;
+		size_t current = start;
+
+		KeywordTree *node1 = getKeywordNode(tokens, current, current);
+		// res is the return value.
+		KeywordTree *res = node1;
+
+		while(current < stop){
+			KeywordTree *node2 = getKeywordNode(tokens, current, current);
+			if (KT_AND == node2->type){
+				res = node2;
+				res->left = node1;
+				res->right = getKeywordNode(tokens, current, current);
+			} else if(KT_OR == node2->type){
+				res = node2;
+				res->left = node1;
+				res->right = getKeywordNode(tokens, current, current);
+			} else if(KT_SUB == node2->type){
+				res = node2;
+				res->left = node1;
+				res->right = getKeywordNode(tokens, current, current);
+			} else if(KT_STRING == node2->type){
+				res = new KeywordTree(KT_AND);
+				res->left = node1;
+				res->right = node2;
+			} else {
+
+			}
+			node1 = res;
+		}
+		return res;
 	}
 
 	KeywordTree *parseKeywordTreeStrict(const string &str){
-		return new KeywordTree();
+		string query_string = str;
+		vector<string> *tokens = queryTokenizer(query_string);
+		checkBracktes(tokens);
+		KeywordTree *res = buildKeywordTree(tokens, 0, tokens->size());
+		return res;
+	}
+
+	void printKeywordTree(KeywordTree *tmp, size_t level){
+		if(tmp->type == KT_STRING){
+			cout << tmp->keyword << endl;
+		} else {
+			cout << "type: " << tmp->type << endl;
+			if(tmp->left){
+				for(size_t i = 0; i < level; ++i){
+					cout << "     ";
+				}
+				cout << "|----";
+				printKeywordTree(tmp->left, level+1);
+			}
+
+			if(tmp->right){
+				for(size_t i = 0; i < level; ++i){
+					cout << "     ";
+				}
+				cout << "|----";
+				printKeywordTree(tmp->right, level+1);
+			}
+		}
+	}
+
+	KeywordTree *parseKeywordTree(const string str, bool rough){
+		if(rough){
+			return parseKeywordTreeRough(str);
+		} else {
+			return parseKeywordTreeStrict(str);
+		}
+	}
+
+	KeywordTree *parseKeywordTree(const string str){
+		return parseKeywordTree(str, false);
 	}
 
 } // end namespace bible.
