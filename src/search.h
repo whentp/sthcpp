@@ -9,39 +9,43 @@
 namespace bible{
 
 	class KeyIndex{
-	private:
-		ifstream keyindexf;
-		size_t keynodelength;
-	public:
-		KeyIndex(const char *fkeyindex);
-		~KeyIndex();
-		CompareNode Find(BibleIntType key);
+		private:
+			ifstream keyindexf;
+			size_t keynodelength;
+		public:
+			KeyIndex(const char *fkeyindex);
+			~KeyIndex();
+			CompareNode Find(BibleIntType key);
 	};
 
 	class Searcher{
-	private:
-		string _fcontainer;
-		string _fkeyindex;
-		string _fcompressed;
-		KeyIndex *_keyindex_finder;
+		private:
+			string _fcontainer;
+			string _fkeyindex;
+			string _fcompressed;
+			KeyIndex *_keyindex_finder;
+			ifstream _indexfile;
 
-		ifstream _indexfile;
+			void SearchSingleKeyword(
+					SearchResult* res, 
+					const char* keyword);
+			MemBlock *GetMemBlock(CompareNode &node);
+		public:
+			Searcher(
+					const char* fcontainerstr,
+					const char* fkeyindexstr,
+					const char* fcompressedstr);
 
-		void SearchSingleKeyword(
-			SearchResult* res, 
-			const char* keyword);
-		SearchResult *SearchMultipleKeywords(const char* keyword);
-		SearchResult *SearchByKeywordTree(const KeywordTree *kt);
-		
-		MemBlock *GetMemBlock(CompareNode &node);
-	public:
-		Searcher(
-			const char* fcontainerstr,
-			const char* fkeyindexstr,
-			const char* fcompressedstr);
-		~Searcher();
-		SearchResult *Search(const char *keyword_str);
-		void MatchFilenames(SearchResult* res);
+			~Searcher();
+
+			SearchResult *SearchByKeywordTree(const KeywordTree *kt);
+
+			SearchResult *SearchMultipleKeywords(const char* keyword);	
+
+			///< alias of SearchMultipleKeywords
+			SearchResult *Search(const char *keyword_str);
+
+			void MatchFilenames(SearchResult* res);
 	};
 
 	void makeNext(MemBlock* &m1);
@@ -50,8 +54,8 @@ namespace bible{
 	vector<TokenItem> * parseKeywords(const char* str); 
 
 	void matchFilenamesForResults(
-		SearchResult* res,
-		const char* fcontainer);
+			SearchResult* res,
+			const char* fcontainer);
 
 	void shrinkSearchSingleKeyword(SearchResult* res);
 

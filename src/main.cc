@@ -18,10 +18,10 @@ typedef void(*pointer_of_function)(int, char const *[]);
 
 void showUsage(){
 	char usagestr[] = "Usage:\n"
-	"bible <add>|<search> <index directory>\n\n"
-	"make sure that <index directory> exist. bible will not create this directory.\n"
-	"<add>: index new files. the size of each file should be less than 65536 bytes.\n"
-	"<search>: search an index.\n";
+		"bible <add>|<search> <index directory>\n\n"
+		"make sure that <index directory> exist. bible will not create this directory.\n"
+		"<add>: index new files. the size of each file should be less than 65536 bytes.\n"
+		"<search>: search an index.\n";
 
 	cout<<usagestr<<endl;
 }
@@ -29,7 +29,7 @@ void showUsage(){
 void actionCreateIndex(int argc, char const *argv[]){
 	if (argc < 2){
 		cout << "Usage:\n"
-		"bible add <index directory>" << endl;
+			"bible add <index directory>" << endl;
 		return;
 	}
 	Schedule *indexer = new Schedule(argv[1]);
@@ -48,9 +48,9 @@ void actionMergeIndexes(int argc, char const *argv[]){
 		return;
 	}
 	mergeIndex(
-		argv[1], argv[2], argv[3], 
-		argv[4], argv[5], argv[6], 
-		argv[7], argv[8], argv[9]);
+			argv[1], argv[2], argv[3], 
+			argv[4], argv[5], argv[6], 
+			argv[7], argv[8], argv[9]);
 
 	cout<<"merge ok."<<endl;
 }
@@ -60,7 +60,7 @@ void actionSearch(int argc, char const *argv[]){
 
 	if (argc < 2){
 		cout << "Usage:\n"
-		"bible search <index directory>" << endl;
+			"bible search <index directory>" << endl;
 		return;
 	}
 
@@ -75,13 +75,15 @@ void actionSearch(int argc, char const *argv[]){
 
 	res->elapsetime = watch.Stop();
 
-	for(size_t i = 0; i < res->resultcount; ++i){
+	for(size_t i = 0; i < res->count; ++i){
 		cout << res->filenames[i] 
-		<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
+			<< "\t->\t" << getfileoffset(res->indexes[i]) << " match(es)." << endl;
 	}
-	cout << "Total " << res->resultcount << " result(s). Cost " 
-	<< res->elapsetime << " second(s)." << endl;
-
+	cout << "Total " << res->count << " result(s). Cost " 
+		<< res->elapsetime << " second(s)." << endl;
+	if(!res->state){
+		cout << res->msg << endl;
+	}
 	delete res;
 	delete searcher;
 	cout<<"end."<<endl;
@@ -90,19 +92,19 @@ void actionSearch(int argc, char const *argv[]){
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
 
-	string a = "\"he\\tl(lo wo)rld|test\"|s(d|f)sdf&ss\"&&&\"&&";
+	string a = "((test)&(perhaps&maybe))";
 
 	/*vector<string> *test1 = queryTokenizer(a);
-	for(auto &i : *test1){
-		cout << i << endl;
-	}
-	cout << "--------" << endl;*/
+	  for(auto &i : *test1){
+	  cout << i << endl;
+	  }
+	  cout << "--------" << endl;*/
 
-string aaa = "(aaaaaa)";
-KeywordTree *test = parseKeywordTreeStrict(aaa);
+	string aaa = "(aaaaaa)";
+	KeywordTree *test = parseKeywordTreeStrict(aaa);
 
-printKeywordTree(test, 0);
-delete test;
+	printKeywordTree(test, 0);
+	delete test;
 
 	cout << "end testing." << endl;
 }

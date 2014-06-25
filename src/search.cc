@@ -59,8 +59,8 @@ namespace bible{
 	}
 
 	Searcher::Searcher(const char* fcontainerstr,
-		const char* fkeyindexstr,
-		const char* fcompressedstr){
+			const char* fkeyindexstr,
+			const char* fcompressedstr){
 		string tmp = "";
 		_fcontainer = fcontainerstr;
 		_fkeyindex = fkeyindexstr;
@@ -146,11 +146,11 @@ namespace bible{
 	}
 
 	void matchFilenamesForResults(SearchResult* res, const char* fcontainer) {
-		size_t length = res->resultcount;
+		size_t length = res->count;
 		//fstream filenameindex(fcontainer, ios::in|ios::binary);
 		BibleIntType *tmp;
 		BibleIntType filenumber;
-		tmp = res->result_index;
+		tmp = res->indexes;
 
 		Container filenamefounder;
 		filenamefounder.Open(fcontainer);
@@ -177,7 +177,7 @@ namespace bible{
 		KeywordTree *kt = parseKeywordTree(keywordstring);
 		//cout<<"parse tree end."<<endl;
 		//initSearch();
-		auto res = SearchByKeywordTree(kt);
+		SearchResult *res = SearchByKeywordTree(kt);
 		delete kt;
 		return res;
 	}
@@ -192,9 +192,9 @@ namespace bible{
 			return res;
 		} else if(KT_AND == kt->type){
 			SearchResult *res1 = SearchByKeywordTree(kt->left);
-			if(res1->resultcount){
+			if(res1->count){
 				SearchResult *res2 = SearchByKeywordTree(kt->right);
-				if (res2->resultcount){
+				if (res2->count){
 					mergeSearchSingleAnd(res1, res2);
 				}
 				delete res2;
@@ -203,10 +203,10 @@ namespace bible{
 		} else if(KT_OR == kt->type){
 			SearchResult *res1 = SearchByKeywordTree(kt->left);
 			SearchResult *res2 = SearchByKeywordTree(kt->right);
-			if(res1->resultcount > 0 && res2->resultcount == 0){
+			if(res1->count > 0 && res2->count == 0){
 				delete res2;
 				return res1;
-			} else if(res1->resultcount == 0 && res2->resultcount > 0){
+			} else if(res1->count == 0 && res2->count > 0){
 				delete res1;
 				return res2;
 			} else {
@@ -217,7 +217,7 @@ namespace bible{
 		} else if(KT_SUB == kt->type){
 			SearchResult *res1 = SearchByKeywordTree(kt->left);
 			SearchResult *res2 = SearchByKeywordTree(kt->right);
-			if(res1->resultcount == 0 || res2->resultcount == 0){
+			if(res1->count == 0 || res2->count == 0){
 				delete res2;
 				return res1;
 			} else {
@@ -231,8 +231,8 @@ namespace bible{
 	}
 
 	void Searcher::SearchSingleKeyword(
-		SearchResult* res, 
-		const char* keyword)
+			SearchResult* res, 
+			const char* keyword)
 	{
 		CompareNode start_and_length;
 		MemBlock *m1, *m2;
@@ -261,14 +261,14 @@ namespace bible{
 						delete m2;
 					}
 				}
-				res->result_index = (BibleIntType *)m1->block;
+				res->indexes = (BibleIntType *)m1->block;
 				m1->Lock();
-				res->resultcount = m1->length/sizeof(BibleIntType);
+				res->count = m1->length/sizeof(BibleIntType);
 				delete m1;
 			}
 		} else {
-			res->resultcount = 0;
-			res->result_index = NULL;
+			res->count = 0;
+			res->indexes = NULL;
 			//abc->result = NULL;
 		}
 		//res->elapsetime = watch.Stop();
@@ -277,9 +277,9 @@ namespace bible{
 	}
 
 	void shrinkSearchSingleKeyword(SearchResult* res) {
-		size_t len = res->resultcount;
+		size_t len = res->count;
 		if (len == 0) return;
-		BibleIntType *cmp = res->result_index, *cur = res->result_index;
+		BibleIntType *cmp = res->indexes, *cur = res->indexes;
 		*cur = makeFileNode(getfilenumber(*cur), 0);
 		while (len-- > 0){
 			if (getfilenumber(*cmp) == getfilenumber(*cur)) {
@@ -290,24 +290,24 @@ namespace bible{
 			}
 			++cmp;
 		}
-		res->resultcount = cur - res->result_index + 1;
+		res->count = cur - res->indexes + 1;
 	}
 
 	size_t mergeSearchSingleAnd(SearchResult* a, SearchResult* b){
-		size_t i = a->resultcount;
-		size_t j = b->resultcount;
+		size_t i = a->count;
+		size_t j = b->count;
 		if(i == 0){
 			return 0;
 		}
 		if(j == 0){
-			delete[] a->result_index;
-			a->result_index = NULL;
-			a->resultcount = 0;
+			delete[] a->indexes;
+			a->indexes = NULL;
+			a->count = 0;
 			return 0;
 		}
-		BibleIntType *ap = a->result_index;
-		BibleIntType *tmp = a->result_index;
-		BibleIntType *bp = b->result_index;
+		BibleIntType *ap = a->indexes;
+		BibleIntType *tmp = a->indexes;
+		BibleIntType *bp = b->indexes;
 		BibleIntType tmpa, tmpb;
 		size_t count = 0;
 		while(i > 0 && j > 0){
@@ -328,16 +328,16 @@ namespace bible{
 				--i; --j;
 			}
 		}
-		a->resultcount = count;
+		a->count = count;
 		return count;
 	}
 
 	size_t mergeSearchSingleOr(SearchResult* a, SearchResult* b){
-		size_t len1 = a->resultcount;
-		size_t len2 = b->resultcount;
+		size_t len1 = a->count;
+		size_t len2 = b->count;
 		size_t i = 0, j = 0;
-		BibleIntType *ap = a->result_index;
-		BibleIntType *bp = b->result_index;
+		BibleIntType *ap = a->indexes;
+		BibleIntType *bp = b->indexes;
 		BibleIntType *tmp = new BibleIntType[len1 + len2];
 		BibleIntType tmpa, tmpb;
 		size_t count = 0;
@@ -386,22 +386,22 @@ namespace bible{
 			++count;
 		}
 
-		a->resultcount = count;
+		a->count = count;
 
-		delete[] a->result_index;
-		a->result_index = newresult;
+		delete[] a->indexes;
+		a->indexes = newresult;
 		//cout<<"end or merge."<<count<<endl;
 		return count;
 	}
 
 	size_t mergeSearchSingleSub(SearchResult* a, SearchResult* b){
-		size_t i = a->resultcount;
-		size_t j = b->resultcount;
+		size_t i = a->count;
+		size_t j = b->count;
 		if (j == 0){
 			return i;
 		}
-		BibleIntType *ap = a->result_index;
-		BibleIntType *bp = b->result_index;
+		BibleIntType *ap = a->indexes;
+		BibleIntType *bp = b->indexes;
 		BibleIntType *tmp = ap;
 		BibleIntType tmpa, tmpb;
 		size_t count = 0;
@@ -433,7 +433,7 @@ namespace bible{
 			++count;
 		}
 
-		a->resultcount = count;
+		a->count = count;
 		//cout<<"end sub merge."<<count<<endl;
 		return count;
 	}

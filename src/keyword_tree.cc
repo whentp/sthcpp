@@ -20,6 +20,7 @@
 #include <map>
 #include <vector>
 #include "keyword_tree.h"
+#include "exceptions.h"
 
 namespace bible{
 	using namespace std;
@@ -68,7 +69,7 @@ namespace bible{
 					if(tmpfind != dict.end()){
 						str.at(previous) = tmpfind->second;
 					} else {
-						throw "escape string error.";
+						BIBLE_THROW(ExceptionBible, "escape string error.");
 					}
 				}
 			} else {
@@ -163,11 +164,11 @@ namespace bible{
 				--check_brackets;
 			}
 			if(check_brackets < 0){
-				throw "unmatched bracket(s).";
+				BIBLE_THROW(ExceptionBible, "unmatched bracket(s).");
 			}
 		}
 		if(check_brackets != 0){
-			throw "unmatched bracket(s).";
+			BIBLE_THROW(ExceptionBible, "unmatched bracket(s).");
 		}
 
 	}
@@ -178,7 +179,7 @@ namespace bible{
 			size_t &end)
 	{
 		if(tokens->size() <= start){
-			throw "build tree error.";
+			BIBLE_THROW(ExceptionBible, "build tree error.");
 		}
 		string current_token = tokens->at(start);
 		if("&" == current_token){
@@ -215,7 +216,7 @@ namespace bible{
 			}
 			//cout << "paired close bracket:" << paired_bracket << endl;
 			if(1 == (paired_bracket - start)){
-				throw "nothing in brackets.";
+				BIBLE_THROW(ExceptionBible, "nothing in brackets.");
 			}
 			KeywordTree *res = buildKeywordTree(tokens, start + 1, paired_bracket);
 			end = paired_bracket + 2;

@@ -10,19 +10,21 @@ typedef uint32_t BibleIntType;
 
 #define FILE_TOKEN_COUNT_BIT_MAX 16 // NEVER touch here unless u know what u are doing.
 
-#define getfilenumber(aaa) ((aaa) >> FILE_TOKEN_COUNT_BIT_MAX) ///< Very important.
-#define getfileoffset(aaa) ((aaa) << (sizeof(BibleIntType)*8 - FILE_TOKEN_COUNT_BIT_MAX) >> (sizeof(BibleIntType)*8 - FILE_TOKEN_COUNT_BIT_MAX)) ///< Very important.
+#define getfilenumber(an_integer) ((an_integer) >> FILE_TOKEN_COUNT_BIT_MAX) ///< Very important.
+
+#define getfileoffset(an_integer) ((an_integer) << (sizeof(BibleIntType)*8 - FILE_TOKEN_COUNT_BIT_MAX) >> (sizeof(BibleIntType)*8 - FILE_TOKEN_COUNT_BIT_MAX)) ///< Very important.
 
 #define makeFileNode(fileindex, offset) (((fileindex) << FILE_TOKEN_COUNT_BIT_MAX)+(offset))
+
 namespace bible{
 
 	/**
 	 * @brief Attention to the order of file and key.
 	 */
 	/*struct IndexNode {
-		BibleIntType file;
-		BibleIntType key;
-	};*/
+	  BibleIntType file;
+	  BibleIntType key;
+	  };*/
 
 	/**
 	 * @brief Attention to the order of n1 and n2.
@@ -42,12 +44,15 @@ namespace bible{
 	typedef char* FileNode;
 
 	struct SearchResult {
-		size_t resultcount;
+		size_t count;
 		double elapsetime;
-		BibleIntType* result_index;
+		BibleIntType* indexes;
 		FileNode* filenames; ///< the filenames. Should be NULL before the matchfilenames is called.
-		SearchResult(): resultcount(0), elapsetime(0), result_index(NULL), filenames(NULL){}
+		size_t state;
+		char *msg;
+		SearchResult(): count(0), elapsetime(0), indexes(NULL), filenames(NULL), state(0), msg(NULL){}
 		~SearchResult();
+		void SetMsg(const char* msg);
 	};
 
 	struct MemBlock {

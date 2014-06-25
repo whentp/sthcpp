@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "structure.h"
 namespace bible{
 	/**
@@ -35,21 +36,31 @@ namespace bible{
 	}
 
 	void MemBlock::Free() {
-		if(flag) return; // do not delete block when flag = 1;
 		this->length = 0;
+		if (flag) return; // do not delete block when flag = 1;
 		if (this->block!=NULL) {
 			delete[] this->block;
 			this->block = NULL;
 		}
 	}
 
+	void SearchResult::SetMsg(const char* str){
+		size_t len = strlen(str) + 1;
+		msg = new char[len];
+		strcpy(msg, str);
+		msg[len] = 0;
+	}
+
 	SearchResult::~SearchResult(){
-		if (result_index) delete[] result_index;
-		if(filenames){
-			for(size_t i = 0; i < resultcount; ++i){
+		if (indexes) delete[] indexes;
+		if (filenames){
+			for(size_t i = 0; i < count; ++i){
 				delete filenames[i];
 			}
 			delete[] filenames;
+		}
+		if (msg){
+			delete msg;
 		}
 	}
 
