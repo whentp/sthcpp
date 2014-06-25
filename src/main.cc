@@ -92,15 +92,14 @@ void actionSearch(int argc, char const *argv[]){
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
 
-	string a = "((test)&(perhaps&maybe))";
-
+	string aaa = "(size|((test)&(perhaps&maybe)))";
 	/*vector<string> *test1 = queryTokenizer(a);
 	  for(auto &i : *test1){
 	  cout << i << endl;
 	  }
 	  cout << "--------" << endl;*/
 
-	string aaa = "(aaaaaa)";
+	//string aaa = "(aaaaaa)";
 	KeywordTree *test = parseKeywordTreeStrict(aaa);
 
 	printKeywordTree(test, 0);
@@ -121,7 +120,7 @@ int main(int argc, char const *argv[]) {
 		showUsage();
 	} else {
 		string action_str = argv[1];
-		if ( actions.find(action_str) == actions.end() ) {
+		if (actions.find(action_str) == actions.end()) {
 			cout << "action \"" << action_str << "\" does not exist." << endl;
 			showUsage();
 		} else {
@@ -129,5 +128,5 @@ int main(int argc, char const *argv[]) {
 			actions.at(action_str)(argc - 1, argv + 1);
 		}
 	}
-	return 0; 
+	return 0;
 }

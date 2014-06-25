@@ -219,7 +219,7 @@ namespace bible{
 				BIBLE_THROW(ExceptionBible, "nothing in brackets.");
 			}
 			KeywordTree *res = buildKeywordTree(tokens, start + 1, paired_bracket);
-			end = paired_bracket + 2;
+			end = paired_bracket + 1;
 			return res;
 		}
 	}
