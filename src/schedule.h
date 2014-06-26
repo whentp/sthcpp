@@ -1,3 +1,20 @@
+/**
+ * (C) Copyright 2014.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser General Public License
+ * (LGPL) version 3.0 which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/lgpl-3.0.html
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * Contributors:
+ *     whentp <tpsmsproject@gmail.com>
+ */
+
 #ifndef _SCHEDULE_H__
 #define _SCHEDULE_H__
 #include <string>
@@ -57,7 +74,14 @@ namespace bible{
 			 * @brief Find all container files. Then strip their extensions.
 			 * @return Schedule
 			 */
-			vector<ScheduleFileNode> *FindIndexFiles();
+			vector<ScheduleFileNode> *FindIndexFiles();			/**
+			
+			/**
+			 * @brief Find all container files for merge. That is, when a container contains more 
+			 * than MAX files, it will be deleted from the results.Then strip their extensions.
+			 * @return Schedule
+			 */
+			vector<ScheduleFileNode> *FindIndexFilesForMerge();
 
 			/**
 			 * @brief Merge two group of indexes.

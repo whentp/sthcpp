@@ -144,6 +144,18 @@ namespace bible{
 		return container_files;
 	}
 
+	vector<ScheduleFileNode> *Schedule::FindIndexFilesForMerge(){
+		vector<string> *filelist = getFilesInDirectory(_directory.c_str());
+		vector<ScheduleFileNode> *container_files = filterFilenameAll(filelist);
+		for(size_t i = container_files->size() - 1; i >= 0; --i){
+			if(container_files->at(i).filesize >= sizeof(BarnNode) * getfilenumber(MAX_BIBLE_INT_VALUE)){
+				container_files->erase(&(container_files->at(i));
+			}
+		}
+		delete filelist;
+		return container_files;
+	}
+
 	void Schedule::Start(){
 		auto container_files = FindIndexFiles();;
 
@@ -184,6 +196,11 @@ namespace bible{
 
 		string a = container_files->at(0).filename;
 		for(size_t i = 1; i < container_files->size(); ++i){
+
+
+// here should check the sizes.
+
+
 			string b = container_files->at(i).filename;
 			//cout << "a=" << a << ", \tb=" << b << endl;
 			if(a.size() != b.size()){
@@ -233,10 +250,10 @@ namespace bible{
 	}
 
 	string repeatChar(size_t size){
-		string res = "";
-		for(size_t i = 0; i < size; ++i){
+		string res(size, '1');
+		/*for(size_t i = 0; i < size; ++i){
 			res += "1";
-		}
+		}*/
 		return res;
 	}
 
