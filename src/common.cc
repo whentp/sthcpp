@@ -12,4 +12,9 @@ namespace bible{
 		return duration;
 	}
 
+	const char *file_ext_container_key = ".container";
+	const char *file_ext_container_value = ".barnvalue";
+	const char *file_ext_keyindex = ".keyindex";
+	const char *file_ext_compressedindex = ".compressedindex";
+
 } // end namespace bible

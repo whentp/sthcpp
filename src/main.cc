@@ -7,6 +7,10 @@
 #include "common.h"
 #include "schedule.h"
 #include "file_op.h"
+#include "barn.h"
+
+//for testing
+#include "keyword_tree.h"
 
 using namespace std;
 using namespace bible;
@@ -14,17 +18,22 @@ typedef void(*pointer_of_function)(int, char const *[]);
 
 void showUsage(){
 	char usagestr[] = "Usage:\n"
-		"main_executable_program add|merge|search\n\n"
-		"create: index new files to a new index. The length of each filename should be less than 60 bytes (including path). The size of each file should be less than 60k.\n"
-		//"merge: merge two indexes to one temporary index.\n"
-		"search: search an index.\n";
+		"bible <add>|<search> <index directory>\n\n"
+		"make sure that <index directory> exist. bible will not create this directory.\n"
+		"<add>: index new files. the size of each file should be less than 65536 bytes.\n"
+		"<search>: search an index.\n";
 
 	cout<<usagestr<<endl;
 }
 
 void actionCreateIndex(int argc, char const *argv[]){
+	if (argc < 2){
+		cout << "Usage:\n"
+			"bible add <index directory>" << endl;
+		return;
+	}
+	Schedule *indexer = new Schedule(argv[1]);
 	string filename;
-	Schedule *indexer = new Schedule("index_files/");
 	indexer->Start();
 	while(cin>>filename) {
 		indexer->AddFile(filename.c_str());
@@ -49,73 +58,60 @@ void actionMergeIndexes(int argc, char const *argv[]){
 void actionSearch(int argc, char const *argv[]){
 	char str[256];
 
+	if (argc < 2){
+		cout << "Usage:\n"
+			"bible search <index directory>" << endl;
+		return;
+	}
+
 	cin.get(str, 256);
 	cout<<"start searching..."<<endl;
 	StopWatch watch;
 
-	string directory = "index_files/";
+	string directory = argv[1];
 	auto searcher = new Schedule(directory);
 	searcher->PrepareSearchers();
 	auto res = searcher->Search(str);
 
 	res->elapsetime = watch.Stop();
 
-	for(int i = 0; i < res->resultcount; ++i){
+	for(size_t i = 0; i < res->count; ++i){
 		cout << res->filenames[i] 
-			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
+			<< "\t->\t" << getfileoffset(res->indexes[i]) << " match(es)." << endl;
 	}
-	cout << "Total " << res->resultcount << " result(s). Cost " 
+	cout << "Total " << res->count << " result(s). Cost " 
 		<< res->elapsetime << " second(s)." << endl;
-
+	if(!res->state){
+		cout << res->msg << endl;
+	}
 	delete res;
 	delete searcher;
 	cout<<"end."<<endl;
 }
 
-void actionSearchSingle(int argc, char const *argv[]){
-	char str[256];
-
-	cin.get(str, 256);
-	cout<<"start searching..."<<endl;
-
-	StopWatch watch;
-	SearchResult *res = new SearchResult();
-	searchSingleKeyword(res, str, "keyindex.index", "compress.index");
-	shrinkSearchSingleKeyword(res);
-	matchFilenamesForResults(res, "container.index");
-	res->elapsetime = watch.Stop();
-	for(int i = 0; i < res->resultcount; ++i){
-		cout << res->filenames[i] 
-			<< "\t->\t" << getfileoffset(res->result_index[i]) << " match(es)." << endl;
-	}
-	cout << "Total " << res->resultcount << " result(s). Cost " 
-		<< res->elapsetime << " second(s)." << endl;
-
-	delete res;
-	cout<<"end."<<endl;
-}
-
 void actionTest(int argc, char const *argv[]){
 	cout << "start testing..." << endl;
-	string filename;
-	Schedule *aaa = new Schedule("index_files/");
-	//int x= 2;
-	aaa->Start();
-	while(cin>>filename) {
-		aaa->AddFile(filename.c_str());//, "raw.index", "container.index");
-		//if ((x++%5) == 0)
-	}
-	aaa->Commit();
-	delete aaa;
-	cout << "end testing." << endl;
 
+	string aaa = "(size|((test)&(perhaps&maybe)))";
+	/*vector<string> *test1 = queryTokenizer(a);
+	  for(auto &i : *test1){
+	  cout << i << endl;
+	  }
+	  cout << "--------" << endl;*/
+
+	//string aaa = "(aaaaaa)";
+	KeywordTree *test = parseKeywordTreeStrict(aaa);
+
+	printKeywordTree(test, 0);
+	delete test;
+
+	cout << "end testing." << endl;
 }
 
 map<string, pointer_of_function> actions = {
 	{"add",	actionCreateIndex},
-	{"merge",	actionMergeIndexes},
+	//{"merge",	actionMergeIndexes},
 	{"search",	actionSearch},
-	{"searchsingle",	actionSearchSingle},
 	{"test",	actionTest}
 };
 
@@ -124,7 +120,7 @@ int main(int argc, char const *argv[]) {
 		showUsage();
 	} else {
 		string action_str = argv[1];
-		if ( actions.find(action_str) == actions.end() ) {
+		if (actions.find(action_str) == actions.end()) {
 			cout << "action \"" << action_str << "\" does not exist." << endl;
 			showUsage();
 		} else {
@@ -132,5 +128,5 @@ int main(int argc, char const *argv[]) {
 			actions.at(action_str)(argc - 1, argv + 1);
 		}
 	}
-	return 0; 
+	return 0;
 }

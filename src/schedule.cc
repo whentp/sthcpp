@@ -1,15 +1,35 @@
+/**
+ * (C) Copyright 2014.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser General Public License
+ * (LGPL) version 3.0 which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/lgpl-3.0.html
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * Contributors:
+ *     whentp <tpsmsproject@gmail.com>
+ */
+
 #include <iostream>
 #include <algorithm>
 #include <string>
 #include <vector>
 #include <stdio.h>
 #include <string.h>
+#include "common.h"
 #include "structure.h"
 #include "schedule.h"
 #include "hash.h"
 #include "indexer.h"
 #include "search.h"
 #include "file_op.h"
+#include "keyword_tree.h"
+#include "exceptions.h"
 
 namespace bible{
 
@@ -47,12 +67,10 @@ namespace bible{
 		auto files = FindIndexFiles();
 		for(size_t i = 0; i < files->size(); ++i){
 			string tmpstr = _directory + files->at(i).filename;
-			string container_str = tmpstr + ".container"; 
-			string keyindex_str = tmpstr + ".keyindex";
-			string compressed_str = tmpstr + ".compressedindex";
-			//cout << container_str << endl;
-			//cout << keyindex_str << endl;
-			//cout << compressed_str << endl;
+			string container_str = tmpstr; // + ".container"; 
+			string keyindex_str = tmpstr + file_ext_keyindex;
+			string compressed_str = tmpstr + file_ext_compressedindex;
+
 			Searcher *tmpsearcher = new Searcher(
 					container_str.c_str(),
 					keyindex_str.c_str(),
@@ -63,33 +81,44 @@ namespace bible{
 	}
 
 	SearchResult *Schedule::Search(const char *keyword_str){
-		vector<SearchResult*> *results = new vector<SearchResult*>();
 		size_t count = 0;
-		for(size_t i = 0; i < _searchers->size(); ++i){
-			auto result_piece = _searchers->at(i)->Search(keyword_str);
-			_searchers->at(i)->MatchFilenames(result_piece);
-			results->push_back(result_piece);
-			count += result_piece->resultcount;
-			cout << count << endl;
-		}
-		auto merged_res = new SearchResult();
-		merged_res->result_index = new unsigned int[count];
-		merged_res->filenames = new FileNode[count];
-		auto tmp_index = merged_res->result_index;
-		auto tmp_filenames = merged_res->filenames;
+		SearchResult *merged_res = new SearchResult();
+		vector<SearchResult*> *results = new vector<SearchResult*>();
 
-		for(auto &result_piece : *results){
-			memcpy((void*)tmp_index,
-					(void*)(result_piece->result_index),
-					result_piece->resultcount * sizeof(unsigned int));
-			tmp_index += result_piece->resultcount;
+		try{
+			string keywordstring(keyword_str);
+			KeywordTree *kt = parseKeywordTree(keywordstring);
 
-			memcpy((void*)tmp_filenames,
-					(void*)(result_piece->filenames),
-					result_piece->resultcount * sizeof(FileNode));
-			tmp_filenames += result_piece->resultcount;
+			for(size_t i = 0; i < _searchers->size(); ++i){
+				SearchResult *result_piece = _searchers->at(i)->SearchByKeywordTree(kt);
+				_searchers->at(i)->MatchFilenames(result_piece);
+				results->push_back(result_piece);
+				count += result_piece->count;
+			}
+			delete kt;
+			merged_res->indexes = new BibleIntType[count];
+			merged_res->filenames = new FileNode[count];
+			auto tmp_index = merged_res->indexes;
+			auto tmp_filenames = merged_res->filenames;
+
+			for(auto &result_piece : *results){
+				memcpy((void*)tmp_index,
+						(void*)(result_piece->indexes),
+						result_piece->count * sizeof(BibleIntType));
+				tmp_index += result_piece->count;
+
+				memcpy((void*)tmp_filenames,
+						(void*)(result_piece->filenames),
+						result_piece->count * sizeof(FileNode));
+				tmp_filenames += result_piece->count;
+			}
+			merged_res->state = 1; // 1 stands for sucessful.
+			merged_res->count = count;
+		} catch (ExceptionBible& e) {
+			merged_res->count = 0;
+			merged_res->state = 0; // means failure.
+			merged_res->SetMsg(e.what());
 		}
-		merged_res->resultcount = count;
 		delete results;
 		return merged_res;
 	}
@@ -98,7 +127,14 @@ namespace bible{
 		addFileToIndex(
 				filename,
 				(_directory + "tmp.raw").c_str(),
-				(_directory + "0.container").c_str());
+				(_directory + "0").c_str());
+	}
+
+	void Schedule::AddText(const char *key, const char *value){
+		addTextToIndex(
+				key, value,
+				(_directory + "tmp.raw").c_str(),
+				(_directory + "0").c_str());
 	}
 
 	vector<ScheduleFileNode> *Schedule::FindIndexFiles(){
@@ -115,10 +151,19 @@ namespace bible{
 
 		for(auto &tmpfile : *container_files){
 			string tmp = tmpfile.filename;
-			if( tmp.find("0") != string::npos){
-				rename((_directory + tmp + ".container").c_str(), (_directory + repeatChar(tmp.size()) + ".container").c_str());
-				rename((_directory + tmp + ".keyindex").c_str(), (_directory + repeatChar(tmp.size()) + ".keyindex").c_str());
-				rename((_directory + tmp + ".compressedindex").c_str(), (_directory + repeatChar(tmp.size()) + ".compressedindex").c_str());
+			if(tmp.find("0") != string::npos){
+				string repeated_tmpstr = repeatChar(tmp.size());
+				// container
+				rename((_directory + tmp + file_ext_container_key).c_str(),
+						(_directory + repeated_tmpstr + file_ext_container_key).c_str());
+				rename((_directory + tmp + file_ext_container_value).c_str(),
+						(_directory + repeated_tmpstr + file_ext_container_value).c_str());				
+				// keyindex
+				rename((_directory + tmp + file_ext_keyindex).c_str(),
+						(_directory + repeated_tmpstr + file_ext_keyindex).c_str());
+				// compressedindex
+				rename((_directory + tmp + file_ext_compressedindex).c_str(),
+						(_directory + repeated_tmpstr + file_ext_compressedindex).c_str());
 			}
 		}
 		delete container_files;
@@ -128,9 +173,8 @@ namespace bible{
 		sortIndex((_directory + "tmp.raw").c_str());
 		compressIndex(
 				(_directory + "tmp.raw").c_str(),
-				(_directory + "0.compressedindex").c_str(),
-				(_directory + "0.keyindex").c_str());
-
+				(_directory + "0" + file_ext_compressedindex).c_str(),
+				(_directory + "0" + file_ext_keyindex).c_str());
 		Merge();
 	}
 
@@ -147,17 +191,23 @@ namespace bible{
 			}
 			MergePair(_directory + a, _directory + b);
 
-			rename((_directory + "tmp_container").c_str(), (_directory + b + "0.container").c_str());
-			rename((_directory + "tmp_key").c_str(), (_directory + b + "0.keyindex").c_str());
-			rename((_directory + "tmp_compressed").c_str(), (_directory + b + "0.compressedindex").c_str());
+			rename((_directory + "tmp_container" + file_ext_container_key).c_str(),
+					(_directory + b + "0" + file_ext_container_key).c_str());
+			rename((_directory + "tmp_container" + file_ext_container_value).c_str(),
+					(_directory + b + "0" + file_ext_container_value).c_str());
+			rename((_directory + "tmp_key").c_str(),
+					(_directory + b + "0" + file_ext_keyindex).c_str());
+			rename((_directory + "tmp_compressed").c_str(),
+					(_directory + b + "0" + file_ext_compressedindex).c_str());
 
-			remove((_directory + a + ".container").c_str());
-			remove((_directory + a + ".keyindex").c_str());
-			remove((_directory + a + ".compressedindex").c_str());
+			//remove((_directory + a + ".container").c_str());
+			remove((_directory + a + file_ext_keyindex).c_str());
+			remove((_directory + a + file_ext_compressedindex).c_str());
 
-			remove((_directory + b + ".container").c_str());
-			remove((_directory + b + ".keyindex").c_str());
-			remove((_directory + b + ".compressedindex").c_str());
+			remove((_directory + b + file_ext_container_key).c_str());
+			remove((_directory + b + file_ext_container_value).c_str());
+			remove((_directory + b + file_ext_keyindex).c_str());
+			remove((_directory + b + file_ext_compressedindex).c_str());
 
 			a = b+"0";
 		}
@@ -169,14 +219,15 @@ namespace bible{
 
 	void Schedule::MergePair(const string &a, const string &b){
 		mergeIndex(
-				(a+".container").c_str(),
-				(b+".container").c_str(),
-				(_directory + "tmp_container").c_str(),
-				(a+".keyindex").c_str(),
-				(b+".keyindex").c_str(),
+				//(a+".container").c_str(),
+				//(b+".container").c_str(),
+				//(_directory + "tmp_container").c_str(),
+				a.c_str(), b.c_str(), (_directory + "tmp_container").c_str(),
+				(a + file_ext_keyindex).c_str(),
+				(b + file_ext_keyindex).c_str(),
 				(_directory + "tmp_key").c_str(),
-				(a+".compressedindex").c_str(),
-				(b+".compressedindex").c_str(),
+				(a + file_ext_compressedindex).c_str(),
+				(b + file_ext_compressedindex).c_str(),
 				(_directory + "tmp_compressed").c_str());
 		//cout<<"merge ok."<<endl;
 	}
@@ -194,7 +245,7 @@ namespace bible{
 		size_t pos;
 		for(auto &i : *filenames){
 			//cout<<"\t"<<i<<endl;
-			if((pos = i.find(".container")) != string::npos){
+			if((pos = i.find(file_ext_container_key)) != string::npos){
 				ScheduleFileNode snode;
 				snode.filename = i.substr(0, pos);
 				snode.filesize = getFileLength(i.c_str());
@@ -209,6 +260,4 @@ namespace bible{
 		}
 		return res;
 	}
-
-
 } // end namespace bible.

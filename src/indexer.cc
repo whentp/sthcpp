@@ -9,64 +9,84 @@
 #include "structure.h"
 #include "file_op.h"
 #include "common.h"
+#include "container.h"
+
 namespace bible{
 	using namespace std;
 
-	/************************************/
+	void addTextToIndex(
+		const char *keystr,
+		const char *valuestr,
+		const char *to,
+		const char *fcontainer)
+	{
+		const char * raw_string = valuestr;
+		size_t length = strlen(raw_string);
+		if(!length) return;
 
-	unsigned int getFileNumber(const char* filename, const char* fcontainer) {
-		unsigned int num;
-		FILE* fout;
-		FileNode filename_node = {0};
-		ensureFileExists(fcontainer);
-		num = getFileLength(fcontainer)/sizeof(FileNode);
-		fout = fopen(fcontainer, "rb+");
-		fseek(fout, 0, SEEK_END);
-		strcpy(filename_node, filename);
-		fwrite(filename_node, sizeof(FileNode), 1, fout);
-		fclose(fout);
-		return num;
-	}
+		Container tmpcontainer(fcontainer);
 
-	void addFileToIndex(const char * filename, const char * to, const char * fcontainer) {
-		char * raw_string = NULL;
-		size_t filelength = 0;
+		BibleIntType max_file_offset = getfileoffset(MAX_BIBLE_INT_VALUE);
+		BibleIntType max_file_number = getfilenumber(MAX_BIBLE_INT_VALUE);
 
-		unsigned int filecount = getFileNumber(filename, fcontainer);
+		BibleIntType file_number = tmpcontainer.GetFileNumber(keystr);
+
+		if (file_number >= max_file_number){
+			cout << "container full. cannot add file." << endl;
+			exit(0);
+		}
+		//cout << file_number << endl;
 		ensureFileExists(to);
-
-		loadFile(filename, raw_string, filelength);
 
 		auto tokenizer = new TokenizerEnglish();
 		auto hashlist = tokenizer->Tokenize(raw_string);
 
-		delete[] raw_string;
+		BibleIntType processed_token_count = 0;
 
 		for (auto item = hashlist->begin(); item != hashlist->end(); ++item) {
 			// donno how to convert item to void*. therefore write an ugly line.
 			TokenItem* current_item = &(*item);
-			current_item->offset = makeFileNode(filecount, current_item->offset);
+			current_item->offset = makeFileNode(file_number, current_item->offset);
+			++processed_token_count;
+			if(processed_token_count >= max_file_offset){
+				cout << "Only the first " << processed_token_count << "tokens are indexed." << endl;
+				break;
+			}
 		}
 
 		if (hashlist->size()){
 			fstream file (to, ios::in|ios::out|ios::binary|ios::ate);
 			if (file.is_open()) {
-				file.write((const char *)(&((*hashlist)[0])),sizeof(IndexNode) * hashlist->size());
+				file.write((const char *)(&((*hashlist)[0])), sizeof(TokenItem) * processed_token_count);
 				file.close();
-				printf("Processing %s, length: %zu bytes. %f\n", filename, filelength, (double)hashlist->size() * sizeof(IndexNode) / filelength);
+				cout << "Processing " << keystr 
+				<< ", length: " << length << " bytes, ratio: " 
+				<< (double)processed_token_count * sizeof(TokenItem) / length << endl;
 			}
 		}
 		delete hashlist;
 		//any leak?
 	}
 
-	int sortIndex(const char * filename) {
-		int filelength=getFileLength(filename);
-		int tmpint=filelength/sizeof(CompareNode);
-		FILE* filenameindex=fopen(filename,"rb+");
+	void addFileToIndex(
+		const char * filename,
+		const char * to,
+		const char * fcontainer)
+	{
+		char * raw_string = NULL;
+		size_t filelength;
+		loadFile(filename, raw_string, filelength);
+		addTextToIndex(filename, raw_string, to, fcontainer);
+		delete[] raw_string;
+	}
+
+	size_t sortIndex(const char * filename) {
+		size_t filelength = getFileLength(filename);
+		size_t tmpint = filelength / sizeof(CompareNode);
+		FILE* filenameindex = fopen(filename,"rb+"); // errr... i use c here just because i donno the alternative for "rb+" in c++.
 		auto tmp = new CompareNode[tmpint];
 
-		printf("Sort index start...\n");
+		cout << "Sorting index... ";
 		fseek(filenameindex, 0, SEEK_SET);
 		rewind(filenameindex);
 		fread(tmp, sizeof(CompareNode), tmpint, filenameindex);
@@ -75,67 +95,74 @@ namespace bible{
 		rewind(filenameindex);
 		fwrite(tmp, sizeof(CompareNode), tmpint, filenameindex);
 		fclose(filenameindex);
-		printf("Sort index OK...\n");
+		cout << "OK." << endl;
 
 		delete[] tmp;
 		return tmpint;
 	}
 
-	int compressIndex(
-			const char * filename_raw,
-			const char * filename_compress,
-			const char * filename_keyindex)
+	size_t compressIndex(
+		const char * filename_raw,
+		const char * filename_compress,
+		const char * filename_keyindex)
 	{
-		int filelength = getFileLength(filename_raw);
-		int tmpint = filelength / sizeof(CompareNode);
-		int currentp = 0, m1;
-		FILE* filenameindex;
-		FILE* compressf;
-		FILE* keyf;
+		size_t filelength = getFileLength(filename_raw);
+		size_t tmpint = filelength / sizeof(CompareNode);
+		size_t currentp = 0, m1;
+		//FILE* compressf;
+		//FILE* keyf;
 		KeyNode tmpkeynode;
+
+		cout << "Compressing index... ";
+
 		TokenItem *tmp = new TokenItem[tmpint];
-		filenameindex = fopen(filename_raw,"rb");
-		fseek(filenameindex,0,SEEK_SET);
-		fread(tmp,1,filelength,filenameindex);
-		fclose(filenameindex);
-		compressf=fopen(filename_compress,"wb");
-		rewind(compressf);
-		keyf=fopen(filename_keyindex,"wb");
+		ifstream filenameindex(filename_raw, ios::in|ios::binary);
+		//fseek(filenameindex,0,SEEK_SET);
+		filenameindex.read((char*)tmp, filelength);
+		filenameindex.close();
+
+		fstream compressf(filename_compress, ios::out|ios::binary);
+		compressf.seekp(0, ios::beg);
+		//rewind(compressf);
+
+		fstream keyf(filename_keyindex, ios::out|ios::binary);
+		keyf.seekp(0, ios::beg);
+		
 		tmpkeynode.key = 0;
 		tmpkeynode.start = 0;
 		tmpkeynode.length = 0;
-		for(int i = 0; i < tmpint; ++i) {
+		for(size_t i = 0; i < tmpint; ++i) {
 			if(tmpkeynode.key != tmp[i].hash) {
-				m1=ftell(compressf);
-				tmpkeynode.length=m1-currentp;
-				fwrite(&tmpkeynode,sizeof(tmpkeynode),1,keyf);
-				tmpkeynode.key=tmp[i].hash;
-				tmpkeynode.start=m1;
-				currentp=m1;
+				m1 = compressf.tellp();
+				tmpkeynode.length = m1 - currentp;
+				keyf.write((char*)&tmpkeynode, sizeof(KeyNode));
+				tmpkeynode.key = tmp[i].hash;
+				tmpkeynode.start = m1;
+				currentp = m1;
 			}
-			fwrite(&(tmp[i].offset),sizeof(int),1,compressf);
+			compressf.write((char*)&(tmp[i].offset), sizeof(BibleIntType));
 		}
-		m1=ftell(compressf);
-		tmpkeynode.length=m1-currentp;
-		fwrite(&tmpkeynode,sizeof(tmpkeynode),1,keyf);
-		fclose(compressf);
-		fclose(keyf);
+		m1 = compressf.tellp();
+		tmpkeynode.length = m1 - currentp;
+		keyf.write((char*)&tmpkeynode, sizeof(KeyNode));
+		compressf.close();
+		keyf.close();
 		delete[] tmp;
 		remove(filename_raw);
-		printf("Compress index OK...\n");
+		cout << "OK." << endl;
 		return tmpint;
 	}
 
 	void mergeIndex(
-			const char * container1,
-			const char * container2,
-			const char * tmpcontainer,
-			const char * keyindex1,
-			const char * keyindex2,
-			const char * tmpkeyindex,
-			const char * compressed1,
-			const char * compressed2,
-			const char * tmpcompressed)
+		const char * container1,
+		const char * container2,
+		const char * tmpcontainer,
+		const char * keyindex1,
+		const char * keyindex2,
+		const char * tmpkeyindex,
+		const char * compressed1,
+		const char * compressed2,
+		const char * tmpcompressed)
 	{
 		cout << container1 << endl;
 		cout << container2 << endl;
@@ -148,35 +175,18 @@ namespace bible{
 		size_t len2 = getFileLength(container2);
 
 		// merge two container. simple.
-		fstream file(tmpcontainer, ios::out|ios::binary|ios::ate);
-		if (file.is_open()) {
-			char *block = new char[len1];
-			fstream freader(container1, ios::in|ios::binary);
-			if (freader.is_open()) {
-				freader.read(block, len1);
-				freader.close();
-				file.write(block, len1);
-			} else {
-				throw "read file error";
-			}
-			delete[] block;
+		
+		Container container(container1);
 
-			block = new char[len2];
-			fstream freader2(container2, ios::in|ios::binary);
-			if (freader2.is_open()) {
-				freader2.read(block, len2);
-				freader2.close();
-				file.write(block, len2);
-			} else {
-				throw "read file error";
-			}
-			delete[] block;
-			file.close();
-		} else {
-			throw "open file error";
-		}
+		len1 = container.Merge(container2);
+		container.Close();
 
-		unsigned int file_number_offset = makeFileNode(len1 / sizeof(FileNode), 0);
+		string tmp1 = file_ext_container_key;//".container";
+		rename((container1 + tmp1).c_str(), (tmpcontainer + tmp1).c_str());
+		string tmp2 = file_ext_container_value; //".barnvalue";
+		rename((container1 + tmp2).c_str(), (tmpcontainer + tmp2).c_str());
+
+		BibleIntType file_number_offset = makeFileNode(len1, 0);
 		// a little dangder. generate an offset used for calculate new file numbers.
 
 		fstream newkey(tmpkeyindex, ios::out|ios::binary);
@@ -218,7 +228,7 @@ namespace bible{
 				if(i < len1){
 					fk1.read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
-					tmpk1.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk1.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			} else if(tmpk1.key > tmpk2.key){
 				if (tmpk2.length > 0) {
@@ -227,8 +237,8 @@ namespace bible{
 
 					// the following section... urrrr... how can remove it when we do not need it.
 					// e.g. when every file_number is already unique.
-					int count = tmpk2.length / sizeof(int);
-					unsigned int *tmpadder = (unsigned int *)(b2);
+					size_t count = tmpk2.length / sizeof(BibleIntType);
+					BibleIntType *tmpadder = (BibleIntType *)(b2);
 					while(count-- > 0){
 						(*tmpadder) += file_number_offset;
 						++tmpadder;
@@ -244,7 +254,7 @@ namespace bible{
 				if(j < len2){
 					fk2.read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
-					tmpk2.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk2.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			} else {
 				if((tmpk1.length + tmpk2.length) > 0) {
@@ -258,8 +268,8 @@ namespace bible{
 					}
 					// do sth to the 2nd block.
 					// same to aforehead. how to remove it, because of the flexibility.
-					int count = tmpk2.length / sizeof(int);
-					unsigned int *tmpadder = (unsigned int *)(b1 + tmpk1.length);
+					size_t count = tmpk2.length / sizeof(BibleIntType);
+					BibleIntType *tmpadder = (BibleIntType *)(b1 + tmpk1.length);
 					while(count-- > 0){
 						(*tmpadder) += file_number_offset;
 						++tmpadder;
@@ -277,12 +287,12 @@ namespace bible{
 				if(i < len1){
 					fk1.read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
-					tmpk1.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk1.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 				if(j < len2){
 					fk2.read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
-					tmpk2.key = 0xffffffff;//-1; // is it safe? or UINT_MAX?
+					tmpk2.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			}
 		}

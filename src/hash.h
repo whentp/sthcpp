@@ -1,7 +1,7 @@
 #ifndef _HASH_H__
 #define _HASH_H__
-
 #include <stdlib.h>
+
 namespace bible{
 	void prepareCryptTable(); ///< must run once before generating hashcode.
 

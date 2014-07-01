@@ -5,6 +5,8 @@
 #include "common.h"
 #include "hash.h"
 #include "tokenizer_english.h"
+#include "structure.h"
+
 namespace bible{
 	using namespace std;
 
@@ -17,7 +19,7 @@ namespace bible{
 		auto c_str = original.c_str();
 		size_t pos = 0;
 		size_t prev_pos = 0;
-		size_t offset = 0; // the indexes of "words".
+		BibleIntType offset = 0; // the indexes of "words".
 
 		while (pos < len){
 			while (pos < len && isalnum(c_str[pos])) pos++; // isalnum in ctype.h checks if a char is [\d\w]. 

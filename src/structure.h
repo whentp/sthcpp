@@ -1,48 +1,79 @@
-#ifndef _search__structure__
-#define _search__structure__
+/**
+ * (C) Copyright 2014.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser General Public License
+ * (LGPL) version 3.0 which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/lgpl-3.0.html
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * Contributors:
+ *     whentp <tpsmsproject@gmail.com>
+ */
 
-#define getfilenumber(aaa) ((aaa)>>16) ///< Very important.
-#define getfileoffset(aaa) (((aaa)<<16)>>16) ///< Very important.
+#ifndef _search_structure_
+#define _search_structure_
 
-#define makeFileNode(fileindex, offset) (((fileindex)<<16)+(offset))
+#include <stdint.h>
+
+// basic type. change it to uint64 to support large indexes.
+typedef uint32_t BibleIntType;
+
+#define MAX_BIBLE_INT_VALUE 0xffffffff
+
+#define FILE_TOKEN_COUNT_BIT_MAX 16 // NEVER touch here unless u know what u are doing.
+
+#define getfilenumber(an_integer) ((an_integer) >> FILE_TOKEN_COUNT_BIT_MAX) ///< Very important.
+
+#define getfileoffset(an_integer) ((an_integer) << (sizeof(BibleIntType)*8 - FILE_TOKEN_COUNT_BIT_MAX) >> (sizeof(BibleIntType)*8 - FILE_TOKEN_COUNT_BIT_MAX)) ///< Very important.
+
+#define makeFileNode(fileindex, offset) (((fileindex) << FILE_TOKEN_COUNT_BIT_MAX)+(offset))
+
 namespace bible{
 
 	/**
 	 * @brief Attention to the order of file and key.
 	 */
-	struct IndexNode {
-		unsigned int file;
-		unsigned int key;
-	};
+	/*struct IndexNode {
+	  BibleIntType file;
+	  BibleIntType key;
+	  };*/
 
 	/**
 	 * @brief Attention to the order of n1 and n2.
 	 */
 	struct CompareNode {
-		unsigned int n2;
-		unsigned int n1;
+		BibleIntType n2;
+		BibleIntType n1;
 	};
 
 	struct KeyNode {
-		unsigned int key;
-		int start;
-		int length;
+		BibleIntType key;
+		size_t start;
+		size_t length;
 		//int type; ///< the type of a keynode. 0: normal, 1: using zlib, maybe.
 	};
 
-	typedef char FileNode[64];
+	typedef char* FileNode;
 
 	struct SearchResult {
-		int resultcount;
+		size_t count;
 		double elapsetime;
-		unsigned int* result_index;
+		BibleIntType* indexes;
 		FileNode* filenames; ///< the filenames. Should be NULL before the matchfilenames is called.
-		SearchResult(): resultcount(0), result_index(NULL), filenames(NULL){}
+		size_t state;
+		char *msg;
+		SearchResult(): count(0), elapsetime(0), indexes(NULL), filenames(NULL), state(0), msg(NULL){}
 		~SearchResult();
+		void SetMsg(const char* msg);
 	};
 
 	struct MemBlock {
-		int length;
+		size_t length;
 		int flag;
 		char* block;
 		MemBlock(size_t size);
@@ -52,6 +83,6 @@ namespace bible{
 		void Free();
 	};
 
-	int compareIndex(const CompareNode a, const CompareNode b);
+	bool compareIndex(const CompareNode a, const CompareNode b);
 } // end namespace bible.
 #endif

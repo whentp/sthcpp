@@ -47,7 +47,7 @@ namespace bible{
 		}	
 	}
 
-	int getFileLength(const char* filename) {
+	size_t getFileLength(const char* filename) {
 		struct stat buf;
 		if (stat(filename, &buf) == -1) {
 			return 0;
