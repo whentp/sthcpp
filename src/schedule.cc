@@ -30,6 +30,7 @@
 #include "file_op.h"
 #include "keyword_tree.h"
 #include "exceptions.h"
+#include "barn.h"
 
 namespace bible{
 
@@ -144,17 +145,17 @@ namespace bible{
 		return container_files;
 	}
 
-	vector<ScheduleFileNode> *Schedule::FindIndexFilesForMerge(){
+	/*vector<ScheduleFileNode> *Schedule::FindIndexFilesForMerge(){
 		vector<string> *filelist = getFilesInDirectory(_directory.c_str());
 		vector<ScheduleFileNode> *container_files = filterFilenameAll(filelist);
 		for(size_t i = container_files->size() - 1; i >= 0; --i){
 			if(container_files->at(i).filesize >= sizeof(BarnNode) * getfilenumber(MAX_BIBLE_INT_VALUE)){
-				container_files->erase(&(container_files->at(i));
+				container_files->erase(&(container_files->at(i)));
 			}
 		}
 		delete filelist;
 		return container_files;
-	}
+	}*/
 
 	void Schedule::Start(){
 		auto container_files = FindIndexFiles();;
@@ -192,20 +193,69 @@ namespace bible{
 
 	void Schedule::Merge(){
 		auto container_files = FindIndexFiles();
+
+		size_t cannot_merge_count = 0;
+		for(size_t i = container_files->size() - 1; i >= 0; --i){
+			bool flag = false;
+			//actually only using the first char can get the result. 
+			for(auto x = container_files->at(i).filename.begin(); x != container_files->at(i).filename.end(); ++x){
+				if(*x == '0' || *x =='1'){
+					flag = true;
+					break;
+				}
+			}
+			if(flag){
+				++cannot_merge_count;
+				container_files->erase(container_files->begin() + i);
+			}
+		}
+
 		if(container_files->size() < 2) return;
 
 		string a = container_files->at(0).filename;
 		for(size_t i = 1; i < container_files->size(); ++i){
-
-
-// here should check the sizes.
-
-
 			string b = container_files->at(i).filename;
 			//cout << "a=" << a << ", \tb=" << b << endl;
 			if(a.size() != b.size()){
 				break;
 			}
+
+			// check the sizes of containers.		
+			size_t filesize_a = getFileLength((_directory + a + file_ext_container_key).c_str()) / sizeof(BarnNode);
+			size_t filesize_b = getFileLength((_directory + b + file_ext_container_key).c_str()) / sizeof(BarnNode);
+
+			if(filesize_a + filesize_b > getfilenumber(MAX_BIBLE_INT_VALUE)){
+				string file1 = a;
+				string file2 = b;
+				if(filesize_a > filesize_b){
+					file1 = b;
+					file2 = a;
+				}
+
+				string cannot_merge_name = file_fixed_container_prefix + NumberToString<size_t>(cannot_merge_count);
+
+				// rename file2 to cannot_merge_name_xxx 
+				rename((_directory + file2 + file_ext_container_key).c_str(),
+						(_directory + cannot_merge_name + file_ext_container_key).c_str());
+				rename((_directory + file2 + file_ext_container_value).c_str(),
+						(_directory + cannot_merge_name + file_ext_container_value).c_str());
+				rename((_directory + file2 + file_ext_keyindex).c_str(),
+						(_directory + cannot_merge_name + file_ext_keyindex).c_str());
+				rename((_directory + file2 + file_ext_compressedindex).c_str(),
+						(_directory + cannot_merge_name + file_ext_compressedindex).c_str());
+
+				// rename file1 to file2.
+				rename((_directory + file1 + file_ext_container_key).c_str(),
+						(_directory + file2 + file_ext_container_key).c_str());
+				rename((_directory + file1 + file_ext_container_value).c_str(),
+						(_directory + file2 + file_ext_container_value).c_str());
+				rename((_directory + file1 + file_ext_keyindex).c_str(),
+						(_directory + file2 + file_ext_keyindex).c_str());
+				rename((_directory + file1 + file_ext_compressedindex).c_str(),
+						(_directory + file2 + file_ext_compressedindex).c_str());
+				break;
+			}
+
 			MergePair(_directory + a, _directory + b);
 
 			rename((_directory + "tmp_container" + file_ext_container_key).c_str(),
@@ -251,9 +301,6 @@ namespace bible{
 
 	string repeatChar(size_t size){
 		string res(size, '1');
-		/*for(size_t i = 0; i < size; ++i){
-			res += "1";
-		}*/
 		return res;
 	}
 

@@ -74,14 +74,14 @@ namespace bible{
 			 * @brief Find all container files. Then strip their extensions.
 			 * @return Schedule
 			 */
-			vector<ScheduleFileNode> *FindIndexFiles();			/**
+			vector<ScheduleFileNode> *FindIndexFiles();
 			
 			/**
 			 * @brief Find all container files for merge. That is, when a container contains more 
 			 * than MAX files, it will be deleted from the results.Then strip their extensions.
 			 * @return Schedule
 			 */
-			vector<ScheduleFileNode> *FindIndexFilesForMerge();
+			//vector<ScheduleFileNode> *FindIndexFilesForMerge();
 
 			/**
 			 * @brief Merge two group of indexes.
