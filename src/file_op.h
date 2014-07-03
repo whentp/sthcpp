@@ -12,11 +12,15 @@ namespace bible{
 	size_t getFileLength(const char* filename);
 
 	///< attention: add \0 to the end of the file.
+	void loadTextFile(const char * filename, char * &memblock, size_t &filesize);
+	
 	void loadFile(const char * filename, char * &memblock, size_t &filesize);
 
 	void createEmptyFile(const char* filename);
 
 	void ensureFileExists(const char* filename);
+
+	bool checkFileExists(const char* filename);
 
 	/**
 	 * @brief Return all files and directories given a directory name.

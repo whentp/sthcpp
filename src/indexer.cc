@@ -75,7 +75,7 @@ namespace bible{
 	{
 		char * raw_string = NULL;
 		size_t filelength;
-		loadFile(filename, raw_string, filelength);
+		loadTextFile(filename, raw_string, filelength);
 		addTextToIndex(filename, raw_string, to, fcontainer);
 		delete[] raw_string;
 	}
@@ -125,6 +125,13 @@ namespace bible{
 		compressf.seekp(0, ios::beg);
 		//rewind(compressf);
 
+		//remove keyindexcache.
+		string keyindexcache = filename_keyindex;
+		keyindexcache += file_ext_keyindex_cache;
+		if(checkFileExists(keyindexcache.c_str())){
+			remove(keyindexcache.c_str());
+		}
+
 		fstream keyf(filename_keyindex, ios::out|ios::binary);
 		keyf.seekp(0, ios::beg);
 		
@@ -173,6 +180,18 @@ namespace bible{
 
 		size_t len1 = getFileLength(container1);
 		size_t len2 = getFileLength(container2);
+
+		//remove keyindexcache.
+		string keyindexcache = keyindex1;
+		keyindexcache += file_ext_keyindex_cache;
+		if(checkFileExists(keyindexcache.c_str())){
+			remove(keyindexcache.c_str());
+		}
+		keyindexcache = keyindex2;
+		keyindexcache += file_ext_keyindex_cache;
+		if(checkFileExists(keyindexcache.c_str())){
+			remove(keyindexcache.c_str());
+		}
 
 		// merge two container. simple.
 		

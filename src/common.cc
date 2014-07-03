@@ -43,10 +43,12 @@ namespace bible{
 			T result;
 			return ss >> result ? result : 0;
 		}
+
 	const char *file_ext_container_key = ".container";
 	const char *file_ext_container_value = ".barnvalue";
 	const char *file_ext_keyindex = ".keyindex";
 	const char *file_ext_compressedindex = ".compressedindex";
+	const char *file_ext_keyindex_cache = ".keyindexcache";
 	const char *file_fixed_container_prefix = "fixed_container_";
 
 } // end namespace bible

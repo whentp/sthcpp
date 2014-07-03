@@ -44,6 +44,7 @@ namespace bible{
 	extern const char *file_ext_container_value;
 	extern const char *file_ext_keyindex;
 	extern const char *file_ext_compressedindex;
+	extern const char *file_ext_keyindex_cache;
 	extern const char *file_fixed_container_prefix;
 
 } // end namespace bible.

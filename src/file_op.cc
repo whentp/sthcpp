@@ -27,7 +27,7 @@ namespace bible{
 	}
 
 	///< attentio: add \0 to the end of the file.
-	void loadFile(const char * filename, char * &memblock, size_t &filesize){
+	void loadTextFile(const char * filename, char * &memblock, size_t &filesize){
 		memblock = NULL;
 		size_t size;
 		ifstream file (filename, ios::in|ios::binary|ios::ate);
@@ -36,6 +36,27 @@ namespace bible{
 			size = file.tellg();
 			filesize = size;
 			memblock = new char[size + 1];
+			file.seekg(0, ios::beg);
+			file.read(memblock, size);
+			memblock[size] = 0;
+			file.close();
+			debug_print("read file %s content.", filename);
+		}
+		else{
+			cout << "Unable to open file";
+			exit(0);
+		}	
+	}
+
+	void loadFile(const char * filename, char * &memblock, size_t &filesize){
+		memblock = NULL;
+		size_t size;
+		ifstream file (filename, ios::in|ios::binary|ios::ate);
+
+		if (file.is_open()) {
+			size = file.tellg();
+			filesize = size;
+			memblock = new char[size];
 			file.seekg(0, ios::beg);
 			file.read(memblock, size);
 			file.close();
@@ -47,7 +68,7 @@ namespace bible{
 		}	
 	}
 
-	size_t getFileLength(const char* filename) {
+	size_t getFileLength(const char* filename){
 		struct stat buf;
 		if (stat(filename, &buf) == -1) {
 			return 0;
@@ -57,11 +78,16 @@ namespace bible{
 		}
 	}
 
+	bool checkFileExists(const char* filename){
+		// this method comes from http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
+		struct stat buffer;   
+  		return (stat(filename, &buffer) == 0);
+	}
+
 	vector<string> *getFilesInDirectory(const char *directory) {
 		DIR *dir;
 		struct dirent *ent;
 		struct stat eStat;
-
 		auto res = new vector<string>;
 		if ((dir = opendir(directory)) != NULL) {
 			while ((ent = readdir (dir)) != NULL) {

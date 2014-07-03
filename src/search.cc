@@ -28,52 +28,9 @@
 #include "keyword_tree.h"
 #include "common.h"
 #include "container.h"
+#include "keyindex.h"
 
 namespace bible{
-
-	KeyIndex::KeyIndex(const char *fkeyindex){
-		//cout << "open keyindex: " << fkeyindex << endl;
-		keyindexf.open(fkeyindex, ios::in|ios::binary);
-		if (!keyindexf.is_open()) {
-			cout << "Unable to open keyindex file" << endl;
-			exit(0);
-		}
-		keynodelength = getFileLength(fkeyindex)/sizeof(KeyNode);
-	}
-
-	KeyIndex::~KeyIndex(){
-		keyindexf.close();
-	}
-
-	CompareNode KeyIndex::Find(BibleIntType key){
-		size_t l, m, r; // left, middle, right.
-		KeyNode tmpk;
-		CompareNode returnvalue;
-
-		returnvalue.n2 = 0;
-		returnvalue.n1 = 0;
-
-		l = 1;
-		r = keynodelength - 1;
-		m = (l + r) / 2;
-
-		while(l <= m && m <= r) {
-			keyindexf.seekg(m * sizeof(KeyNode), ios::beg);
-			keyindexf.read((char*)(&tmpk), sizeof(KeyNode));
-			if(tmpk.key == key) {
-				returnvalue.n1 = tmpk.start;
-				returnvalue.n2 = tmpk.length;
-				break;
-			}
-			else if(tmpk.key > key) {
-				r = m - 1; m = (l + r)/2;
-			}
-			else if(tmpk.key < key) {
-				l = m + 1; m=(l + r)/2;
-			}
-		}
-		return returnvalue;
-	}
 
 	Searcher::Searcher(const char* fcontainerstr,
 			const char* fkeyindexstr,
@@ -86,6 +43,7 @@ namespace bible{
 		//cout << _fkeyindex << endl;
 		//cout << _fcompressed << endl;
 		_keyindex_finder = new KeyIndex(_fkeyindex.c_str());
+
 
 		_indexfile.open(_fcompressed.c_str(), ios::in|ios::binary);
 

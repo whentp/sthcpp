@@ -22,17 +22,9 @@
 #include "structure.h"
 #include "tokenizer.h"
 #include "keyword_tree.h"
-namespace bible{
+#include "keyindex.h"
 
-	class KeyIndex{
-		private:
-			ifstream keyindexf;
-			size_t keynodelength;
-		public:
-			KeyIndex(const char *fkeyindex);
-			~KeyIndex();
-			CompareNode Find(BibleIntType key);
-	};
+namespace bible{
 
 	class Searcher{
 		private:
