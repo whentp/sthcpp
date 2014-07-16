@@ -143,6 +143,7 @@ namespace bible{
 		auto tokenizer = new TokenizerEnglish();
 		auto result = tokenizer->Tokenize(string(str));
 		return result;
+		// leak here. haha
 	}
 
 	SearchResult *Searcher::SearchMultipleKeywords(const char* keyword){
