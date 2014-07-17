@@ -139,8 +139,9 @@ namespace bible{
 	}
 
 	vector<TokenItem> * parseKeywords(const char* str) {
-		string tokenizer_name = "english";
+		string tokenizer_name = config_default_tokenizer;
 		tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+		cout << tokenizer_name << endl;
 		auto tokenizer = globalTokenizers[tokenizer_name];
 		auto result = tokenizer(string(str));
 		return result;

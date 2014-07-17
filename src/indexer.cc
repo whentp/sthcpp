@@ -38,7 +38,7 @@ namespace bible{
 		//cout << file_number << endl;
 		ensureFileExists(to);
 
-		string tokenizer_name = "english";
+		string tokenizer_name = config_default_tokenizer;
 		tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
 		auto tokenizer = globalTokenizers[tokenizer_name];
 		auto hashlist = tokenizer(raw_string);

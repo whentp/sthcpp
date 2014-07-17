@@ -45,6 +45,7 @@ namespace bible{
 		}
 
 	const char *configuration_filename = "config.txt";
+	const char *config_default_tokenizer = "english";
 
 	const char *file_ext_container_key = ".container";
 	const char *file_ext_container_value = ".barnvalue";

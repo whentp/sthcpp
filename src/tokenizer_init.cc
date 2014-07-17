@@ -38,7 +38,7 @@ void initTokenizer() {
     globalTokenizers["english"] = tokenizer_english_func;
 
     // add fourbytes tokenizer.
-    globalTokenizers["fourbytes"] = tokenizer_english_func;
+    globalTokenizers["fourbytes"] = tokenizer_fourbytes_func;
 }
 
 // try to call initTokenizer when loading.

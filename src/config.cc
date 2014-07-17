@@ -120,6 +120,8 @@ std::istream &operator>>( std::istream &is, Config &cf ) {
 
     return is;
 }
+
+
 bool Config::FileExist(std::string filename) {
     bool exist = false;
     std::ifstream in( filename.c_str() );

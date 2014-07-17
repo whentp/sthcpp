@@ -40,6 +40,7 @@ namespace bible{
 		T StringToNumber(const string &str);
 
 	extern const char *configuration_filename;
+	extern const char *config_default_tokenizer;
 
 	// file extensions.
 	extern const char *file_ext_container_key;
