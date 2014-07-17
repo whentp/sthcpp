@@ -4,8 +4,8 @@
 #include <fstream>
 #include <algorithm>
 #include <string.h>
-#include "tokenizer.h"
-#include "tokenizer_english.h"
+#include "config.h"
+#include "tokenizer_init.h"
 #include "structure.h"
 #include "file_op.h"
 #include "common.h"
@@ -38,8 +38,10 @@ namespace bible{
 		//cout << file_number << endl;
 		ensureFileExists(to);
 
-		auto tokenizer = new TokenizerEnglish();
-		auto hashlist = tokenizer->Tokenize(raw_string);
+		string tokenizer_name = "english";
+		tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+		auto tokenizer = globalTokenizers[tokenizer_name];
+		auto hashlist = tokenizer(raw_string);
 
 		BibleIntType processed_token_count = 0;
 

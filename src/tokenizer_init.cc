@@ -18,8 +18,9 @@ map<string, TokenizerFunc> globalTokenizers = {};
 //call english tokenizer
 vector<TokenItem> *tokenizer_english_func(const string &str) {
     TokenizerEnglish *tokenizer = new TokenizerEnglish();
+        
     vector<TokenItem> *result = tokenizer->Tokenize(string(str));
-    delete tokenizer;
+    //delete tokenizer;
     return result;
 }
 
@@ -39,5 +40,8 @@ void initTokenizer() {
     // add fourbytes tokenizer.
     globalTokenizers["fourbytes"] = tokenizer_english_func;
 }
+
+// try to call initTokenizer when loading.
+InitTokenizer ___inittokenizeruseless;
 
 } // end namespace bible.

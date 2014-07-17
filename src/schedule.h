@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include "search.h"
+#include "config.h"
 
 namespace bible{
 

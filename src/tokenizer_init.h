@@ -24,6 +24,16 @@ vector<TokenItem> *tokenizer_fourbytes_func(const string &str);
 
 void initTokenizer();
 
+// just to call initTokenizer() when loading.
+class InitTokenizer{
+public:
+    InitTokenizer(){
+        initTokenizer();
+    }
+};
+
+extern InitTokenizer ___inittokenizeruseless;
+
 } // end namespace bible.
 
 #endif

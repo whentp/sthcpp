@@ -19,6 +19,7 @@ namespace bible{
 
 	class Tokenizer {		
 		public:
+			virtual ~Tokenizer(){};
 			virtual vector<TokenItem> * Tokenize(const string& original)=0;
 			virtual string GetConfiguration()=0;
 	};

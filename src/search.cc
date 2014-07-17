@@ -22,8 +22,8 @@
 #include "file_op.h"
 #include "hash.h"
 #include "structure.h"
-#include "tokenizer.h"
-#include "tokenizer_english.h"
+#include "config.h"
+#include "tokenizer_init.h"
 #include "search.h"
 #include "keyword_tree.h"
 #include "common.h"
@@ -51,7 +51,6 @@ namespace bible{
 			cout << "Unable to open file: " << _fcompressed;
 			exit(0);
 		}
-		prepareCryptTable();
 	}
 
 	Searcher::~Searcher(){
@@ -140,10 +139,11 @@ namespace bible{
 	}
 
 	vector<TokenItem> * parseKeywords(const char* str) {
-		auto tokenizer = new TokenizerEnglish();
-		auto result = tokenizer->Tokenize(string(str));
+		string tokenizer_name = "english";
+		tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+		auto tokenizer = globalTokenizers[tokenizer_name];
+		auto result = tokenizer(string(str));
 		return result;
-		// leak here. haha
 	}
 
 	SearchResult *Searcher::SearchMultipleKeywords(const char* keyword){

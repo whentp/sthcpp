@@ -13,6 +13,7 @@ using namespace std;
 
 class TokenizerFourBytes: Tokenizer {
 public:
+	~TokenizerFourBytes(){};
     vector<TokenItem> *Tokenize(const string &original);
     string GetConfiguration();
 };

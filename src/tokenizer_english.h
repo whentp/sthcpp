@@ -13,6 +13,7 @@ namespace bible{
 
 	class TokenizerEnglish: Tokenizer {
 		public:
+			~TokenizerEnglish(){};
 			vector<TokenItem> * Tokenize(const string& original);
 			string GetConfiguration();
 	};

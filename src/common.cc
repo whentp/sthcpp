@@ -44,6 +44,8 @@ namespace bible{
 			return ss >> result ? result : 0;
 		}
 
+	const char *configuration_filename = "config.txt";
+
 	const char *file_ext_container_key = ".container";
 	const char *file_ext_container_value = ".barnvalue";
 	const char *file_ext_keyindex = ".keyindex";

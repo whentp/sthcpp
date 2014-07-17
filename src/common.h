@@ -39,6 +39,8 @@ namespace bible{
 	template <typename T>
 		T StringToNumber(const string &str);
 
+	extern const char *configuration_filename;
+
 	// file extensions.
 	extern const char *file_ext_container_key;
 	extern const char *file_ext_container_value;

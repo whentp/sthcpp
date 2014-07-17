@@ -46,7 +46,6 @@ namespace bible{
 		} else {
 			_directory = "./";
 		}
-		prepareCryptTable();
 		Start();
 	}
 
