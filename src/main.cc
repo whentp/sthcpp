@@ -126,6 +126,11 @@ void actionTest(int argc, char const *argv[]) {
     std::cout << "username:" << username << std::endl;
     std::cout << "password:" << password << std::endl;
 
+    auto s = globalTokenizers["fourbytes"];
+    auto res = s("structiiiiiiiiiiiiiiiiiiiiiiii");
+    for(auto a: *res){
+        cout << a.hash << "\t" << a.offset << endl;
+    }
     cout << "end testing." << endl;
 }
 

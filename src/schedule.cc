@@ -194,7 +194,7 @@ namespace bible{
 		auto container_files = FindIndexFiles();
 
 		size_t cannot_merge_count = 0;
-		for(size_t i = container_files->size() - 1; i >= 0; --i){
+		for(size_t i = container_files->size(); i-- > 0;){ // attention to the loop. fuck size_t.
 			bool flag = false;
 			//actually only using the first char can get the result. 
 			for(auto x = container_files->at(i).filename.begin(); x != container_files->at(i).filename.end(); ++x){
@@ -205,7 +205,7 @@ namespace bible{
 			}
 			if(flag){
 				++cannot_merge_count;
-				container_files->erase(container_files->begin() + i);
+				//container_files->erase(container_files->begin() + i);
 			}
 		}
 
@@ -231,7 +231,7 @@ namespace bible{
 					file2 = a;
 				}
 
-				string cannot_merge_name = file_fixed_container_prefix + NumberToString<size_t>(cannot_merge_count);
+				string cannot_merge_name = file_fixed_container_prefix + size_t_to_string(cannot_merge_count);
 
 				// rename file2 to cannot_merge_name_xxx 
 				rename((_directory + file2 + file_ext_container_key).c_str(),

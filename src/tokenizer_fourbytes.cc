@@ -25,7 +25,7 @@ vector<TokenItem> *TokenizerFourBytes::Tokenize(const string &original) {
         TokenItem new_token;
         new_token.offset = pos;
         new_token.hash = 0;
-        memcpy((char *)(new_token.hash), c_str + pos, (len - pos > 4) ? 4 : (len - pos));
+        memcpy((char *)(&(new_token.hash)), c_str + pos, (len - pos > 4) ? 4 : (len - pos));
         result->push_back(new_token);
         ++pos;
     }
