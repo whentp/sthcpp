@@ -7,16 +7,20 @@
 #include "tokenizer.h"
 #include "structure.h"
 
-namespace bible{
+namespace bible {
 
-	using namespace std;
+using namespace std;
 
-	class TokenizerEnglish: Tokenizer {
-		public:
-			~TokenizerEnglish(){};
-			vector<TokenItem> * Tokenize(const string& original);
-			string GetConfiguration();
-	};
+class TokenizerEnglish: Tokenizer {
+private:
+    bool _ignorecase = false;
+public:
+    TokenizerEnglish(bool ignorecase)
+        : _ignorecase(ignorecase) {};
+    ~TokenizerEnglish() {};
+    vector<TokenItem> *Tokenize(const string &original);
+    string GetConfiguration();
+};
 
 } // end namespace bible.
 

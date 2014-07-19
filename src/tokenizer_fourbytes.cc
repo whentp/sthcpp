@@ -7,32 +7,36 @@
 #include "common.h"
 #include "tokenizer_fourbytes.h"
 #include "structure.h"
-#include "config.h"
 
 namespace bible {
 using namespace std;
 
+
+TokenizerFourBytes::TokenizerFourBytes(size_t blocksize, bool ignorecase) {
+    _blocksize = (blocksize > 4) ? 4 : blocksize;
+    _ignorecase = ignorecase;
+}
+
 /**
- * four bytes as an integer. simple. if len is less than 4, then fill blanks with \0.
+ * four bytes as an integer. simple.
  * return a list of {offset of word, hash of word}.
  * */
 vector<TokenItem> *TokenizerFourBytes::Tokenize(const string &original) {
     vector<TokenItem> *result = new vector<TokenItem>();
     size_t pos = 0;
+    size_t len = original.size() - _blocksize + 1;
 
-    size_t blocksize = 4;
-    blocksize = globalConfigs.Read("tokenizerfourbytes.blocksize", blocksize);
-    if (blocksize > 4) {
-        blocksize = 4;
+    const char *c_str = original.c_str();
+    if (_ignorecase) {
+        string data = toLowercase(original);
+        c_str = data.c_str();
     }
 
-    size_t len = original.size() - blocksize + 1;
-    const char *c_str = original.c_str();
     while (pos < len) {
         TokenItem new_token;
         new_token.offset = pos;
         new_token.hash = 0;
-        memcpy((char *)(&(new_token.hash)), c_str + pos, blocksize); // no need to deal with blocks less than blocksize bytes.
+        memcpy((char *)(&(new_token.hash)), c_str + pos, _blocksize); // no need to deal with blocks less than blocksize bytes.
         result->push_back(new_token);
         ++pos;
     }

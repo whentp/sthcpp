@@ -12,8 +12,14 @@ namespace bible {
 using namespace std;
 
 class TokenizerFourBytes: Tokenizer {
+private:
+    size_t _blocksize = 0;
+    bool _ignorecase = false;
 public:
-	~TokenizerFourBytes(){};
+    TokenizerFourBytes(
+    	size_t blocksize = 4,
+    	bool ignorecase = false);
+    ~TokenizerFourBytes(){};
     vector<TokenItem> *Tokenize(const string &original);
     string GetConfiguration();
 };

@@ -21,39 +21,13 @@
 #include <string>
 #include <sstream>
 #include "debug.h"
+#include "const.h"
+#include "config.h"
+#include "misc.h"
 
 namespace bible {
 
-using namespace std;
-
-class StopWatch {
-private:
-    clock_t start;
-public:
-    StopWatch();
-    double Stop();
-};
-
-// WHY to_string does not work!!!!!!!!!!!
-// just donno why it cannot work (output undefined symbol when linking). bug of compiler?
-template <typename T>
-string NumberToString(T Number);
-
-template <typename T>
-T StringToNumber(const string &str);
-
-string size_t_to_string(size_t);
-
-extern const char *configuration_filename;
-extern const char *config_default_tokenizer;
-
-// file extensions.
-extern const char *file_ext_container_key;
-extern const char *file_ext_container_value;
-extern const char *file_ext_keyindex;
-extern const char *file_ext_compressedindex;
-extern const char *file_ext_keyindex_cache;
-extern const char *file_fixed_container_prefix;
+extern Config globalConfigs; // load configurations.
 
 } // end namespace bible.
 

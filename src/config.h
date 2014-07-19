@@ -1,5 +1,4 @@
-// config.h
-// source: http://cooker.iteye.com/blog/777455
+// modified from: http://cooker.iteye.com/blog/777455
 
 #ifndef LOAD_CONFIG_H
 #define LOAD_CONFIG_H
@@ -9,7 +8,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "common.h" // for initialize globalConfigs.
 
 namespace bible {
 
@@ -195,8 +193,6 @@ void Config::Add( const std::string &in_key, const T &value ) {
     m_Contents[key] = v;
     return;
 }
-
-extern Config globalConfigs;
 
 } // end namespace bible.
 

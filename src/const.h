@@ -15,10 +15,22 @@
  *     whentp <tpsmsproject@gmail.com>
  */
 
-#include "common.h"
+#ifndef CONST_H
+#define CONST_H
 
 namespace bible {
 
-Config globalConfigs(configuration_filename); // load configuations.
+extern const char *configuration_filename;
+extern const char *config_default_tokenizer;
 
-} // end namespace bible
+// file extensions.
+extern const char *file_ext_container_key;
+extern const char *file_ext_container_value;
+extern const char *file_ext_keyindex;
+extern const char *file_ext_compressedindex;
+extern const char *file_ext_keyindex_cache;
+extern const char *file_fixed_container_prefix;
+
+} // end namespace bible.
+
+#endif

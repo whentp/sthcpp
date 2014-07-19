@@ -8,7 +8,6 @@
 #include "schedule.h"
 #include "file_op.h"
 #include "barn.h"
-#include "config.h"
 #include "tokenizer_init.h"
 
 //for testing

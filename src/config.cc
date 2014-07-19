@@ -1,11 +1,9 @@
-// config.cc
-// source: http://cooker.iteye.com/blog/777455
+// modified from: http://cooker.iteye.com/blog/777455
 
-#include "Config.h"
+#include "config.h"
 
 namespace bible {
 using namespace std;
-
 Config::Config( string filename, string delimiter,
                 string comment )
     : m_Delimiter(delimiter), m_Comment(comment) {
@@ -140,7 +138,5 @@ void Config::ReadFile( string filename, string delimiter,
         in >> (*this);
     }
 }
-
-Config globalConfigs(configuration_filename);
 
 } // end namespace bible.

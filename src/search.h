@@ -19,56 +19,56 @@
 #define _SEARCHER_H__
 
 #include <fstream>
-#include "structure.h"
-#include "tokenizer.h"
 #include "keyword_tree.h"
 #include "keyindex.h"
+#include "tokenizer.h"
+#include "structure.h"
 
-namespace bible{
+namespace bible {
 
-	class Searcher{
-		private:
-			string _fcontainer;
-			string _fkeyindex;
-			string _fcompressed;
-			KeyIndex *_keyindex_finder;
-			ifstream _indexfile;
+class Searcher {
+private:
+    string _fcontainer;
+    string _fkeyindex;
+    string _fcompressed;
+    KeyIndex *_keyindex_finder;
+    ifstream _indexfile;
 
-			void SearchSingleKeyword(
-					SearchResult* res, 
-					const char* keyword);
-			MemBlock *GetMemBlock(CompareNode &node);
-		public:
-			Searcher(
-					const char* fcontainerstr,
-					const char* fkeyindexstr,
-					const char* fcompressedstr);
+    void SearchSingleKeyword(
+        SearchResult *res,
+        const char *keyword);
+    MemBlock *GetMemBlock(CompareNode &node);
+public:
+    Searcher(
+        const char *fcontainerstr,
+        const char *fkeyindexstr,
+        const char *fcompressedstr);
 
-			~Searcher();
+    ~Searcher();
 
-			SearchResult *SearchByKeywordTree(const KeywordTree *kt);
+    SearchResult *SearchByKeywordTree(const KeywordTree *kt);
 
-			SearchResult *SearchMultipleKeywords(const char* keyword);	
+    SearchResult *SearchMultipleKeywords(const char *keyword);
 
-			///< alias of SearchMultipleKeywords
-			SearchResult *Search(const char *keyword_str);
+    ///< alias of SearchMultipleKeywords
+    SearchResult *Search(const char *keyword_str);
 
-			void MatchFilenames(SearchResult* res);
-	};
+    void MatchFilenames(SearchResult *res);
+};
 
-	void makeNext(MemBlock* &m1);
-	size_t compareBlock(MemBlock* m1, MemBlock* m2);
+void makeNext(MemBlock *&m1);
+size_t compareBlock(MemBlock *m1, MemBlock *m2);
 
-	vector<TokenItem> * parseKeywords(const char* str); 
+vector<TokenItem> *parseKeywords(const char *str);
 
-	void matchFilenamesForResults(
-			SearchResult* res,
-			const char* fcontainer);
+void matchFilenamesForResults(
+    SearchResult *res,
+    const char *fcontainer);
 
-	void shrinkSearchSingleKeyword(SearchResult* res);
+void shrinkSearchSingleKeyword(SearchResult *res);
 
-	size_t mergeSearchSingleAnd(SearchResult* a, SearchResult* b); ///< a & b
-	size_t mergeSearchSingleOr(SearchResult* a, SearchResult* b); ///< a | b
-	size_t mergeSearchSingleSub(SearchResult* a, SearchResult* b); ///< a - b
+size_t mergeSearchSingleAnd(SearchResult *a, SearchResult *b); ///< a & b
+size_t mergeSearchSingleOr(SearchResult *a, SearchResult *b); ///< a | b
+size_t mergeSearchSingleSub(SearchResult *a, SearchResult *b); ///< a - b
 } // end namespace bible.
 #endif

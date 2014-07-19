@@ -15,10 +15,36 @@
  *     whentp <tpsmsproject@gmail.com>
  */
 
-#include "common.h"
+#ifndef MISC_H
+#define MISC_H
+
+#include <string>
+#include <sstream>
 
 namespace bible {
 
-Config globalConfigs(configuration_filename); // load configuations.
+using namespace std;
 
-} // end namespace bible
+class StopWatch {
+private:
+    clock_t start;
+public:
+    StopWatch();
+    double Stop();
+};
+
+// WHY to_string does not work!!!!!!!!!!!
+// just donno why it cannot work (output undefined symbol when linking). bug of compiler?
+template <typename T>
+string NumberToString(T Number);
+
+template <typename T>
+T StringToNumber(const string &str);
+
+string size_t_to_string(size_t);
+
+string toLowercase(const string& original);
+
+} // end namespace bible.
+
+#endif

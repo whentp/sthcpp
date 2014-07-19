@@ -14,11 +14,18 @@
  * Contributors:
  *     whentp <tpsmsproject@gmail.com>
  */
-
-#include "common.h"
+#include "const.h"
 
 namespace bible {
 
-Config globalConfigs(configuration_filename); // load configuations.
+const char *configuration_filename = "config.txt";
+const char *config_default_tokenizer = "english";
+
+const char *file_ext_container_key = ".container";
+const char *file_ext_container_value = ".barnvalue";
+const char *file_ext_keyindex = ".keyindex";
+const char *file_ext_compressedindex = ".compressedindex";
+const char *file_ext_keyindex_cache = ".keyindexcache";
+const char *file_fixed_container_prefix = "fixed_container_";
 
 } // end namespace bible
