@@ -32,7 +32,7 @@ namespace bible{
 	class KeyIndex{
 		private:
 			ifstream keyindexf;
-			size_t keynodelength;
+			size_t _keynodecount;
 			bool _needcache;
 			KeyIndexCache *_keyindexcache;
 
@@ -40,7 +40,7 @@ namespace bible{
 			KeyIndex(const char *fkeyindex): KeyIndex(fkeyindex, true) {}
 			KeyIndex(const char *fkeyindex, const bool needcache);
 			~KeyIndex();
-			size_t GetCount(){return keynodelength;}
+			size_t GetCount(){return _keynodecount;}
 			KeyNode ReadSingleKey(const size_t offset); ///< offset is the index, not seekg/seekp.
 			KeyNode *ReadKeyBlock(const size_t offset, const size_t count);
 			CompareNode Find(const BibleIntType key);

@@ -209,6 +209,8 @@ void Searcher::SearchSingleKeyword(
 
     if (lsize > 0) {
         start_and_length = _keyindex_finder->Find(keywords->at(0).hash);
+        //cout << keywords->at(0).hash << endl;
+        //cout << "getmemblock: " << start_and_length.n1 << ", len:" << start_and_length.n2 << endl;//<< m1->length << endl;
         if (start_and_length.n2) {
             m1 = GetMemBlock(start_and_length);
             for (size_t i = 1; i < lsize; ++i) {

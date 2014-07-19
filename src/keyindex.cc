@@ -32,7 +32,7 @@ namespace bible{
 			cout << "Unable to open keyindex file" << endl;
 			exit(0);
 		}
-		keynodelength = getFileLength(fkeyindex)/sizeof(KeyNode);
+		_keynodecount = getFileLength(fkeyindex)/sizeof(KeyNode);
 		_needcache = needcache;
 		if(needcache){
 			_keyindexcache = new KeyIndexCache(fkeyindex);
@@ -63,6 +63,7 @@ namespace bible{
 
 	KeyNode *KeyIndex::ReadKeyBlock(const size_t offset, const size_t count){
 		KeyNode *tmpk = new KeyNode[count];
+		//cout << "offset:" << offset << ", count:" << count << endl;
 		keyindexf.seekg(offset * sizeof(KeyNode), ios::beg);
 		keyindexf.read((char*)(tmpk), count * sizeof(KeyNode));
 		return tmpk;
@@ -80,7 +81,7 @@ namespace bible{
 		returnvalue.n1 = 0;
 
 		l = 0; //1; // here is 1?! not 0?! pls check!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		r = keynodelength - 1;
+		r = _keynodecount - 1;
 		m = (l + r) / 2;
 
 		while(l <= m && m <= r) {
@@ -202,7 +203,7 @@ namespace bible{
 
 		while(l <= m && m <= r) {
 			tmpk = _mem[m];
-			//cout << tmpk.key << "\tl:" << l << ";\tm:" << m << ";\tr" << r << endl;
+			//cout << tmpk.key << "," << key << "\tl:" << l << ";\tm:" << m << ";\tr" << r << endl;
 			if(tmpk.key == key) {
 				KeyNode tmpkeynode;
 				tmpkeynode = _keyindex->ReadSingleKey(tmpk.offset);
@@ -222,8 +223,8 @@ namespace bible{
 		m = (m < l)? m : l; // is this safe?
 		//this is not needed. m = (m < r)? m : r;
 
-		//cout << tmpk.key << "\tl:" << l << ";\tm:" << m << ";\tr" << r << endl;
-		size_t readcount = _keyindex->GetCount() - m;
+		//cout << _mem[m].key << "\tl:" << l << ";\tm:" << m << ";\tr:" << r << endl;
+		size_t readcount = _keyindex->GetCount() - _mem[m].offset; //m?! wrong.
 		if(readcount > _block_size){
 			readcount = _block_size;
 		}

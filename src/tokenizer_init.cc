@@ -14,7 +14,7 @@ namespace bible {
 
 using namespace std;
 
-map<string, TokenizerFunc> globalTokenizers = {};
+map<string, TokenizerFunc> globalTokenizers;
 
 //call english tokenizer
 vector<TokenItem> *tokenizer_english_func(const string &str) {
