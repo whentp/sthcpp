@@ -116,6 +116,7 @@ namespace bible{
 			}
 		}
 		m1->length = count * sizeof(BibleIntType);
+		//cout << "here:" << count << endl;
 		return count;
 	}
 
@@ -141,7 +142,7 @@ namespace bible{
 	vector<TokenItem> * parseKeywords(const char* str) {
 		string tokenizer_name = config_default_tokenizer;
 		tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
-		cout << tokenizer_name << endl;
+		cout << "tokenizer used: " << tokenizer_name << endl;
 		auto tokenizer = globalTokenizers[tokenizer_name];
 		auto result = tokenizer(string(str));
 		return result;
@@ -230,18 +231,25 @@ namespace bible{
 						m2 = GetMemBlock(start_and_length);
 						makeNext(m1);
 						size_t count = compareBlock(m1, m2);
+						//cout << "compareblock : " << count << endl;
 						if (!count) {				
 							m1->Free();
 							m2->Free();
 							break;
 						}
 						delete m2;
+					} else {
+						m1->Free();
+						break;
 					}
 				}
 				res->indexes = (BibleIntType *)m1->block;
 				m1->Lock();
 				res->count = m1->length/sizeof(BibleIntType);
 				delete m1;
+			} else {
+				res->count = 0;
+				res->indexes = NULL;
 			}
 		} else {
 			res->count = 0;
