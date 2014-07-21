@@ -9,6 +9,7 @@
 #include "file_op.h"
 #include "barn.h"
 #include "tokenizer_init.h"
+#include "test_performance.h"
 
 //for testing
 #include "keyword_tree.h"
@@ -106,7 +107,7 @@ void actionTest(int argc, char const *argv[]) {
     printKeywordTree(test, 0);
     delete test;*/
 
-    int port;
+    /*int port;
     std::string ipAddress;
     std::string username;
     std::string password;
@@ -129,7 +130,10 @@ void actionTest(int argc, char const *argv[]) {
     auto res = s("#include <vector>");
     for(auto a: *res){
         cout << a.hash << "\t" << a.offset << endl;
-    }
+    }*/
+
+    testInsertPerformance();
+
     cout << "end testing." << endl;
 }
 

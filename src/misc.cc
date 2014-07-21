@@ -18,17 +18,23 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
-#include <time.h>
+#include <chrono>
 #include "misc.h"
 
 namespace bible {
 
 StopWatch::StopWatch() {
-    start = clock();
+    start = std::chrono::high_resolution_clock::now();
+}
+
+void StopWatch::Start() {
+    start = std::chrono::high_resolution_clock::now();
 }
 
 double StopWatch::Stop() {
-    double duration = (double)(clock() - start) / CLOCKS_PER_SEC;
+    std::chrono::system_clock::time_point endingtime = std::chrono::high_resolution_clock::now();
+    double duration = (double)(std::chrono
+                               ::duration_cast<std::chrono::milliseconds>(endingtime - start).count()) / 1000;
     return duration;
 }
 

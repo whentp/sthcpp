@@ -20,6 +20,7 @@
 
 #include <string>
 #include <sstream>
+#include <chrono> // for StopWatch.
 
 namespace bible {
 
@@ -27,9 +28,10 @@ using namespace std;
 
 class StopWatch {
 private:
-    clock_t start;
+    std::chrono::system_clock::time_point start;
 public:
     StopWatch();
+    void Start();
     double Stop();
 };
 
@@ -43,7 +45,7 @@ T StringToNumber(const string &str);
 
 string size_t_to_string(size_t);
 
-string toLowercase(const string& original);
+string toLowercase(const string &original);
 
 } // end namespace bible.
 

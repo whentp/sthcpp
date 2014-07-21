@@ -77,9 +77,10 @@ namespace bible{
 			if (file.is_open()) {
 				file.write((const char *)(&((*hashlist)[0])), sizeof(TokenItem) * processed_token_count);
 				file.close();
-				cout << "Processing " << keystr 
-				<< ", length: " << length << " bytes, ratio: " 
-				<< (double)processed_token_count * sizeof(TokenItem) / length << endl;
+				//here should output some information.
+				//cout << "Processing " << keystr 
+				//<< ", length: " << length << " bytes, ratio: " 
+				//<< (double)processed_token_count * sizeof(TokenItem) / length << endl;
 			}
 		}
 		delete hashlist;
