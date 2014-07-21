@@ -144,23 +144,10 @@ namespace bible{
 		return container_files;
 	}
 
-	/*vector<ScheduleFileNode> *Schedule::FindIndexFilesForMerge(){
-		vector<string> *filelist = getFilesInDirectory(_directory.c_str());
-		vector<ScheduleFileNode> *container_files = filterFilenameAll(filelist);
-		for(size_t i = container_files->size() - 1; i >= 0; --i){
-			if(container_files->at(i).filesize >= sizeof(BarnNode) * getfilenumber(MAX_BIBLE_INT_VALUE)){
-				container_files->erase(&(container_files->at(i)));
-			}
-		}
-		delete filelist;
-		return container_files;
-	}*/
-
 	void Schedule::Start(){
-		auto container_files = FindIndexFiles();;
-
-		if(!container_files->size()) return;
-
+		//here should check!!!! because it will be called TWICE.
+return;
+		/*auto container_files = FindIndexFiles();
 		for(auto &tmpfile : *container_files){
 			string tmp = tmpfile.filename;
 			if(tmp.find("0") != string::npos){
@@ -178,7 +165,7 @@ namespace bible{
 						(_directory + repeated_tmpstr + file_ext_compressedindex).c_str());
 			}
 		}
-		delete container_files;
+		delete container_files;*/
 	}
 
 	void Schedule::Commit(){
@@ -187,6 +174,21 @@ namespace bible{
 				(_directory + "tmp.raw").c_str(),
 				(_directory + "0" + file_ext_compressedindex).c_str(),
 				(_directory + "0" + file_ext_keyindex).c_str());
+		if(!checkFileExists((_directory + "1" + file_ext_keyindex).c_str())){
+			string tmp = "0";
+				string repeated_tmpstr = repeatChar(tmp.size());
+				// container
+				rename((_directory + tmp + file_ext_container_key).c_str(),
+						(_directory + repeated_tmpstr + file_ext_container_key).c_str());
+				rename((_directory + tmp + file_ext_container_value).c_str(),
+						(_directory + repeated_tmpstr + file_ext_container_value).c_str());				
+				// keyindex
+				rename((_directory + tmp + file_ext_keyindex).c_str(),
+						(_directory + repeated_tmpstr + file_ext_keyindex).c_str());
+				// compressedindex
+				rename((_directory + tmp + file_ext_compressedindex).c_str(),
+						(_directory + repeated_tmpstr + file_ext_compressedindex).c_str());
+		}
 		Merge();
 	}
 
@@ -257,14 +259,19 @@ namespace bible{
 
 			MergePair(_directory + a, _directory + b);
 
+			string tmpfile_append = "0";
+			if(!checkFileExists((_directory + b + "1" + tmpfile_append + file_ext_keyindex).c_str())){
+				tmpfile_append = "1";
+			}
+
 			rename((_directory + "tmp_container" + file_ext_container_key).c_str(),
-					(_directory + b + "0" + file_ext_container_key).c_str());
+					(_directory + b + tmpfile_append + file_ext_container_key).c_str());
 			rename((_directory + "tmp_container" + file_ext_container_value).c_str(),
-					(_directory + b + "0" + file_ext_container_value).c_str());
+					(_directory + b + tmpfile_append + file_ext_container_value).c_str());
 			rename((_directory + "tmp_key").c_str(),
-					(_directory + b + "0" + file_ext_keyindex).c_str());
+					(_directory + b + tmpfile_append + file_ext_keyindex).c_str());
 			rename((_directory + "tmp_compressed").c_str(),
-					(_directory + b + "0" + file_ext_compressedindex).c_str());
+					(_directory + b + tmpfile_append + file_ext_compressedindex).c_str());
 
 			//remove((_directory + a + ".container").c_str());
 			remove((_directory + a + file_ext_keyindex).c_str());
@@ -275,7 +282,7 @@ namespace bible{
 			remove((_directory + b + file_ext_keyindex).c_str());
 			remove((_directory + b + file_ext_compressedindex).c_str());
 
-			a = b+"0";
+			a = b + tmpfile_append ;
 		}
 
 		delete container_files;

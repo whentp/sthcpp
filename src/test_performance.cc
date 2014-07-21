@@ -7,13 +7,13 @@
 namespace bible {
 
 using namespace std;
-char char_used[] = "abcdefghijklmnopqrstuvwxyz0123456789    ";
+char char_used[] = "abcdefghijklmnopqrstuvwxyz0123456789    "; // spaces are necessary. ha.
 
 map<string, string> *generateTestData(size_t count) {
     map<string, string> *res = new map<string, string>();
     for (size_t i = 0; i < count; ++i) {
-        string k = generateRandString(rand() % 40 + 40);
-        string v = generateRandString(rand() % 1024 + 1024);
+        string k = generateRandString((rand() % 40) + 40);
+        string v = generateRandString((rand() % 40) + 40);
         res->insert(pair<string, string>(k, v));
     }
     return res;
@@ -21,7 +21,7 @@ map<string, string> *generateTestData(size_t count) {
 
 string generateRandString(size_t size) {
     string res = "";
-    size_t char_used_count = sizeof(char_used);
+    size_t char_used_count = sizeof(char_used) - 1; // -1 means remove the last \0. remember!!!
     for (size_t i = 0; i < size; ++i) {
         res += char_used[rand() % char_used_count];
     }
@@ -35,19 +35,22 @@ void testInsertPerformance() {
     /* initialize random seed: */
     srand (time(NULL));
     watch.Start();
-    size_t count = 5000;
+    size_t count = 50;
     map<string, string> *test_data = generateTestData(count);
     etime = watch.Stop();
     cout << "Test data generated: " << etime << "second(s)." << endl;
 
     Schedule *indexer = new Schedule("./");
-    indexer->Start();
 
     watch.Start();
     for (auto &i : *test_data) {
-        indexer->AddText(i.second.c_str(), i.first.c_str());
+        indexer->Start();
+        string v = i.second.c_str();
+        string k = i.first.c_str();
+        //cout << "k: " << v.c_str() << endl << "v: " << k.c_str() << endl;
+        indexer->AddText(v.c_str(), k.c_str());
+        indexer->Commit(); // what if just commit after do nothing?
     }
-    indexer->Commit(); // what if just commit after do nothing?
 
     etime = watch.Stop();
     cout << "Test Insert Performance: "

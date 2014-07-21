@@ -38,7 +38,8 @@ namespace bible{
 	{
 		const char * raw_string = valuestr;
 		size_t length = strlen(raw_string);
-		if(!length) return;
+		
+		if(!length) return; // should here return??? when length == 0, should i create some empty files?
 
 		Container tmpcontainer(fcontainer);
 
@@ -83,6 +84,7 @@ namespace bible{
 				//<< (double)processed_token_count * sizeof(TokenItem) / length << endl;
 			}
 		}
+		//cout << "size:" << hashlist->size() << endl;
 		delete hashlist;
 		//any leak?
 	}
@@ -190,12 +192,12 @@ namespace bible{
 		const char * compressed2,
 		const char * tmpcompressed)
 	{
-		cout << container1 << endl;
+		/*cout << container1 << endl;
 		cout << container2 << endl;
 		cout << keyindex1 << endl;
 		cout << keyindex2 << endl;
 		cout << compressed1 << endl;
-		cout << compressed2 << endl;
+		cout << compressed2 << endl;*/
 
 		size_t len1 = getFileLength(container1);
 		size_t len2 = getFileLength(container2);
