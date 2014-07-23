@@ -26,6 +26,7 @@
 #include "file_op.h"
 #include "common.h"
 #include "container.h"
+#include "file_cache.h" // for file cache.
 
 namespace bible{
 	using namespace std;
@@ -144,6 +145,7 @@ namespace bible{
 
 		fstream compressf(filename_compress, ios::out|ios::binary);
 		compressf.seekp(0, ios::beg);
+
 		//rewind(compressf);
 
 		//remove keyindexcache.
@@ -155,6 +157,14 @@ namespace bible{
 
 		fstream keyf(filename_keyindex, ios::out|ios::binary);
 		keyf.seekp(0, ios::beg);
+
+// file cache.
+		size_t cache_size = 1024 * 1024;
+		FileCache fc_keyf(cache_size);
+		FileCache fc_compressf(cache_size);
+		fc_keyf.Serve(&keyf, 0);
+		fc_compressf.Serve(&compressf, 0);
+
 		
 		tmpkeynode.key = 0;
 		tmpkeynode.start = 0;
@@ -242,12 +252,29 @@ namespace bible{
 		if(!fc1.is_open()) throw "error";
 		if(!fc2.is_open()) throw "error";
 
+		// cache for reading
+		size_t cache_size = 1024 * 1024;
+		FileCache fc_fk1(cache_size);
+		FileCache fc_fk2(cache_size);
+		FileCache fc_fc1(cache_size);
+		FileCache fc_fc2(cache_size);
+		fc_fk1.Serve(&fk1, len1);
+		fc_fk2.Serve(&fk2, len2);
+		fc_fc1.Serve(&fc1, getFileLength(compressed1));
+		fc_fc2.Serve(&fc2, getFileLength(compressed2));
+
+		// cache for writing
+		FileCache fc_newkey(cache_size);
+		FileCache fc_newcompressed(cache_size);
+		fc_newkey.Serve(&newkey, 0);
+		fc_newcompressed.Serve(&newcompressed, 0);
+
 		size_t i = 0, j = 0;
 
 		KeyNode tmpk1, tmpk2;
 		//hope all keys can be read to memory. 
-		fk1.read((char*)&tmpk1, sizeof(KeyNode));
-		fk2.read((char*)&tmpk2, sizeof(KeyNode));
+		fc_fk1.Read((char*)&tmpk1, sizeof(KeyNode));
+		fc_fk2.Read((char*)&tmpk2, sizeof(KeyNode));
 
 		char *b1, *b2;
 
@@ -258,22 +285,22 @@ namespace bible{
 			if(tmpk1.key < tmpk2.key){
 				if (tmpk1.length > 0) {
 					b1 = new char[tmpk1.length];
-					fc1.read(b1, tmpk1.length);
-					tmpk1.start = newcompressed.tellg();
-					newcompressed.write(b1, tmpk1.length);
-					newkey.write((char*)&tmpk1, sizeof(KeyNode));
+					fc_fc1.Read(b1, tmpk1.length);
+					tmpk1.start = fc_newcompressed.Tellp();
+					fc_newcompressed.Write(b1, tmpk1.length);
+					fc_newkey.Write((char*)&tmpk1, sizeof(KeyNode));
 					delete[] b1;
 				}
 				++i;
 				if(i < len1){
-					fk1.read((char*)&tmpk1, sizeof(KeyNode));
+					fc_fk1.Read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
 					tmpk1.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			} else if(tmpk1.key > tmpk2.key){
 				if (tmpk2.length > 0) {
 					b2 = new char[tmpk2.length];
-					fc2.read(b2, tmpk2.length);
+					fc_fc2.Read(b2, tmpk2.length);
 
 					// the following section... urrrr... how can remove it when we do not need it.
 					// e.g. when every file_number is already unique.
@@ -285,14 +312,14 @@ namespace bible{
 					}
 
 					// add sth to b2!!!!!!
-					tmpk2.start = newcompressed.tellg();
-					newcompressed.write(b2, tmpk2.length);
-					newkey.write((char*)&tmpk2, sizeof(KeyNode));
+					tmpk2.start = fc_newcompressed.Tellp();
+					fc_newcompressed.Write(b2, tmpk2.length);
+					fc_newkey.Write((char*)&tmpk2, sizeof(KeyNode));
 					delete[] b2;
 				}
 				++j;
 				if(j < len2){
-					fk2.read((char*)&tmpk2, sizeof(KeyNode));
+					fc_fk2.Read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
 					tmpk2.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
@@ -301,10 +328,10 @@ namespace bible{
 					b1 = new char[tmpk1.length + tmpk2.length];
 
 					if (tmpk1.length > 0){
-						fc1.read(b1, tmpk1.length);
+						fc_fc1.Read(b1, tmpk1.length);
 					}
 					if (tmpk2.length){
-						fc2.read(b1 + tmpk1.length, tmpk2.length);
+						fc_fc2.Read(b1 + tmpk1.length, tmpk2.length);
 					}
 					// do sth to the 2nd block.
 					// same to aforehead. how to remove it, because of the flexibility.
@@ -315,28 +342,36 @@ namespace bible{
 						++tmpadder;
 					}
 					//need to sort? maybe no.
-					tmpk1.start = newcompressed.tellg();
+					tmpk1.start = fc_newcompressed.Tellp();
 					tmpk1.length += tmpk2.length;
-					newcompressed.write(b1, tmpk1.length);
-					newkey.write((char*)&tmpk1, sizeof(KeyNode));
+					fc_newcompressed.Write(b1, tmpk1.length);
+					fc_newkey.Write((char*)&tmpk1, sizeof(KeyNode));
 
 					delete[] b1;
 				}
 				++i; ++j;
 				// errr... make sure all i and j are processed.
 				if(i < len1){
-					fk1.read((char*)&tmpk1, sizeof(KeyNode));
+					fc_fk1.Read((char*)&tmpk1, sizeof(KeyNode));
 				} else {
 					tmpk1.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 				if(j < len2){
-					fk2.read((char*)&tmpk2, sizeof(KeyNode));
+					fc_fk2.Read((char*)&tmpk2, sizeof(KeyNode));
 				} else {
 					tmpk2.key = MAX_BIBLE_INT_VALUE;//-1; // is it safe? or UINT_MAX?
 				}
 			}
 		}
 		// really? is that ok???
+
+		fc_fk1.Commit();
+		fc_fk2.Commit();
+		fc_fc1.Commit();
+		fc_fc2.Commit();
+		fc_newcompressed.Commit();
+		fc_newkey.Commit();
+
 		newkey.close();
 		newcompressed.close();
 		fk1.close();

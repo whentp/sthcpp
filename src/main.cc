@@ -7,11 +7,12 @@
 #include "common.h"
 #include "schedule.h"
 #include "file_op.h"
-#include "barn.h"
 #include "tokenizer_init.h"
-#include "test_performance.h"
 
-//for testing
+// for testing
+#include "barn.h"
+#include "test_performance.h"
+#include "file_cache.h"
 #include "keyword_tree.h"
 
 using namespace std;
@@ -94,8 +95,8 @@ void actionSearch(int argc, char const *argv[]) {
 void actionTest(int argc, char const *argv[]) {
     cout << "start testing..." << endl;
 
-    string aaa = "(size|((test)&(perhaps&maybe)))";
-    /*vector<string> *test1 = queryTokenizer(a);
+    /*string aaa = "(size|((test)&(perhaps&maybe)))";
+    vector<string> *test1 = queryTokenizer(a);
       for(auto &i : *test1){
       cout << i << endl;
       }
@@ -132,7 +133,38 @@ void actionTest(int argc, char const *argv[]) {
         cout << a.hash << "\t" << a.offset << endl;
     }*/
 
-    testInsertPerformance();
+
+    string test_file_name = "test_file_cache";
+    fstream writer(test_file_name, ios::out | ios::binary);
+    if (writer.is_open()) {
+        FileCache *fc = new FileCache(1000000);
+        fc->Serve(&writer, 0);
+        for (size_t i = 0; i < 100; ++i) {
+            fc->Write((char *)&i, sizeof(size_t));
+            fc->Write(((char *)&i) + 1, sizeof(size_t) - 1);
+            cout << i << ", tellp: " << fc->Tellp() << endl;
+        }
+        delete fc;
+        writer.close();
+    }
+
+    fstream reader(test_file_name, ios::in | ios::binary);
+    if (reader.is_open()) {
+        FileCache *fc = new FileCache(100000);
+        fc->Serve(&reader, getFileLength(test_file_name.c_str()));
+        for (size_t i = 0; i < 100; ++i) {
+            size_t tmp;
+            fc->Read((char *)&tmp, sizeof(size_t));
+            cout << i << "\t->\t" << tmp << ", tellg: " << fc->Tellg() << endl;
+            fc->Read(((char *)&tmp) + 1, sizeof(size_t) - 1);
+        }
+        delete fc;
+        reader.close();
+    }
+
+
+    //testInsertPerformance();
+
 
     cout << "end testing." << endl;
 }

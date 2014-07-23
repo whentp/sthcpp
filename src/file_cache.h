@@ -28,13 +28,16 @@ class FileCache{
 private:
 	fstream *_fs = nullptr;
 	char *_mem = nullptr;
-	size_t _mem_offset = 0;
+	size_t _mem_offset = -1;
 	size_t _cache_size = 0;
 	size_t _g = -1;
 	size_t _the_real_g = -1;
+	size_t _the_real_prev_g = -1;
 	size_t _p = 0;
 	size_t _the_real_p = 0;
 	size_t _real_file_size = 0;
+	void ReadBlockFromFile(char *block, size_t size_limit);
+	void ReadBlockFromFile();
 public:
 	FileCache(size_t cache_size);
 	~FileCache();
