@@ -95,77 +95,7 @@ void actionSearch(int argc, char const *argv[]) {
 void actionTest(int argc, char const *argv[]) {
     cout << "start testing..." << endl;
 
-    /*string aaa = "(size|((test)&(perhaps&maybe)))";
-    vector<string> *test1 = queryTokenizer(a);
-      for(auto &i : *test1){
-      cout << i << endl;
-      }
-      cout << "--------" << endl;*/
-
-    //string aaa = "(aaaaaa)";
-    /*KeywordTree *test = parseKeywordTreeStrict(aaa);
-
-    printKeywordTree(test, 0);
-    delete test;*/
-
-    /*int port;
-    std::string ipAddress;
-    std::string username;
-    std::string password;
-    const char ConfigFile[] = "config.txt";
-    Config configSettings(ConfigFile);
-    int xport;
-
-    port = configSettings.Read("port", 0);
-    xport = configSettings.Read("x.port", 0);
-    ipAddress = configSettings.Read("ipAddress", ipAddress);
-    username = configSettings.Read("username", username);
-    password = configSettings.Read("password", password);
-    std::cout << "port:" << port << std::endl;
-    std::cout << "ipAddress:" << ipAddress << std::endl;
-    std::cout << "xport:" << xport << std::endl;
-    std::cout << "username:" << username << std::endl;
-    std::cout << "password:" << password << std::endl;
-
-    auto s = globalTokenizers["english"];
-    auto res = s("#include <vector>");
-    for(auto a: *res){
-        cout << a.hash << "\t" << a.offset << endl;
-    }*/
-
-
-    string test_file_name = "test_file_cache";
-    fstream writer(test_file_name, ios::out | ios::binary);
-    if (writer.is_open()) {
-        FileCache *fc = new FileCache(1000000);
-        fc->Serve(&writer, 0);
-        for (size_t i = 0; i < 100; ++i) {
-            fc->Write((char *)&i, sizeof(size_t));
-            fc->Write(((char *)&i) + 1, sizeof(size_t) - 1);
-            cout << i << ", tellp: " << fc->Tellp() << endl;
-        }
-        delete fc;
-        writer.close();
-    }
-
-    fstream reader(test_file_name, ios::in | ios::binary);
-    if (reader.is_open()) {
-        FileCache *fc = new FileCache(100000);
-        fc->Serve(&reader, getFileLength(test_file_name.c_str()));
-        for (size_t i = 0; i < 100; ++i) {
-            size_t tmp;
-            fc->Read((char *)&tmp, sizeof(size_t));
-            cout << i << "\t->\t" << tmp << ", tellg: " << fc->Tellg() << endl;
-            fc->Read(((char *)&tmp) + 1, sizeof(size_t) - 1);
-        }
-        delete fc;
-        reader.close();
-    }
-
-
     //testInsertPerformance();
-
-
     cout << "end testing." << endl;
 }
 

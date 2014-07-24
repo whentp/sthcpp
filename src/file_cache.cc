@@ -50,7 +50,7 @@ void FileCache::Free() {
 
 void FileCache::Commit() {
     if (_mem_offset && _mem_offset <= _cache_size) {
-        cout << "Real Writing (in byte): " << _mem_offset << endl;
+        //cout << "Real Writing (in byte): " << _mem_offset << endl;
         _fs->write(_mem, _mem_offset);
         _mem_offset = 0;
         _the_real_p = _fs->tellp();
@@ -70,7 +70,6 @@ void FileCache::Seekg(const size_t pos, ios_base::seekdir way) {
         _fs->seekg(pos, ios_base::beg);
         _fs->read(_mem, readsize);
     }*/
-
 }
 
 size_t FileCache::Tellg() {
@@ -82,13 +81,14 @@ void FileCache::Seekp(size_t pos, ios_base::seekdir way) {
 }
 
 size_t FileCache::Tellp() {
+    if (_mem_offset > _cache_size) _mem_offset = 0;
     return _the_real_p + _mem_offset;
 }
 
 void FileCache::ReadBlockFromFile(char *block, size_t size_limit) {
     size_t readsize = _real_file_size - _fs->tellg();
     readsize = (readsize > _cache_size) ? size_limit : readsize;
-    cout << "Real Reading (in byte): " << readsize << endl;
+    //cout << "Real Reading (in byte): " << readsize << endl;
     _the_real_prev_g = _fs->tellg();
     _fs->read(block, readsize);
     _the_real_g = _fs->tellg();
@@ -103,37 +103,33 @@ void FileCache::Read(char *s, const size_t n) {
     if (n == 0) return;
     if (_mem_offset >= _cache_size) {
         ReadBlockFromFile();
+        _mem_offset = 0;
     }
 
     if (_mem_offset + n < _cache_size) {
-        cout << "here 222" << endl;
         copy(_mem + _mem_offset, _mem + _mem_offset + n, s);
         _mem_offset += n;
-cout << "here 2222---" << endl;
     } else {
-        cout << "here 1" << endl;
         size_t remaining_size = n - (_cache_size - _mem_offset);
         copy(_mem + _mem_offset, _mem + _cache_size, s);
         _mem_offset = -1;
-cout << "here 2" << endl;
-        
+
         if (remaining_size > _mem_offset) {
             ReadBlockFromFile(s + (n - remaining_size), remaining_size);
         } else {
             ReadBlockFromFile();
             copy(_mem, _mem + remaining_size, s + (n - remaining_size));
             _mem_offset = remaining_size;
-        cout << "here 3" << endl;
         }
     }
-    cout << "here end" << endl;
-        
 }
 
 void FileCache::Write(char *s, const size_t n) {
     if (n == 0) return;
     size_t remaining_size = n;
-    if (_mem_offset > _cache_size) _mem_offset = 0;
+    if (_mem_offset > _cache_size) {
+        _mem_offset = 0;
+    }
     if (remaining_size >= _cache_size) {
         Commit();
         _fs->write(s, n);
@@ -158,5 +154,40 @@ void FileCache::Write(char *s, const size_t n) {
         }
     }
 }
+
+#ifdef _TEST_
+
+void testFileCache() {
+    string test_file_name = "test_file_cache";
+    fstream writer(test_file_name, ios::out | ios::binary);
+    if (writer.is_open()) {
+        FileCache *fc = new FileCache(1000000);
+        fc->Serve(&writer, 0);
+        for (size_t i = 0; i < 100; ++i) {
+            fc->Write((char *)&i, sizeof(size_t));
+            fc->Write(((char *)&i) + 1, sizeof(size_t) - 1);
+            cout << i << ", tellp: " << fc->Tellp() << endl;
+        }
+        delete fc;
+        writer.close();
+    }
+
+    fstream reader(test_file_name, ios::in | ios::binary);
+    if (reader.is_open()) {
+        FileCache *fc = new FileCache(100000);
+        fc->Serve(&reader, getFileLength(test_file_name.c_str()));
+        for (size_t i = 0; i < 100; ++i) {
+            size_t tmp;
+            fc->Read((char *)&tmp, sizeof(size_t));
+            cout << i << "\t->\t" << tmp << ", tellg: " << fc->Tellg() << endl;
+            fc->Read(((char *)&tmp) + 1, sizeof(size_t) - 1);
+        }
+        delete fc;
+        reader.close();
+    }
+}
+
+#endif
+
 
 } // end namespace bible
