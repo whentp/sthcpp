@@ -287,11 +287,11 @@ return;
 
 		delete container_files;
 
-		cout<<"merge ok."<<endl;
+		//cout<<"merge ok."<<endl;
 	}
 
 	void Schedule::MergePair(const string &a, const string &b){
-		StopWatch watch;
+		//StopWatch watch;
 		mergeIndex(
 				//(a+".container").c_str(),
 				//(b+".container").c_str(),
@@ -303,8 +303,8 @@ return;
 				(a + file_ext_compressedindex).c_str(),
 				(b + file_ext_compressedindex).c_str(),
 				(_directory + "tmp_compressed").c_str());
-		cout << "merge ok." << endl;
-		cout << watch.Stop() << " second." << endl;
+		//cout << "merge ok." << endl;
+		//cout << watch.Stop() << " second." << endl;
 	}
 
 	string repeatChar(size_t size){

@@ -15,8 +15,8 @@
  *     whentp <tpsmsproject@gmail.com>
  */
 
-#ifndef _INDEXER_H__
-#define _INDEXER_H__
+#ifndef _INDEXER_H_
+#define _INDEXER_H_
 namespace bible {
 
 /**

@@ -35,7 +35,7 @@ void testInsertPerformance() {
     /* initialize random seed: */
     srand (time(NULL));
     watch.Start();
-    size_t count = 50;
+    size_t count = 1000;
     map<string, string> *test_data = generateTestData(count);
     etime = watch.Stop();
     cout << "Test data generated: " << etime << "second(s)." << endl;
@@ -45,10 +45,7 @@ void testInsertPerformance() {
     watch.Start();
     for (auto &i : *test_data) {
         indexer->Start();
-        string v = i.second.c_str();
-        string k = i.first.c_str();
-        //cout << "k: " << v.c_str() << endl << "v: " << k.c_str() << endl;
-        indexer->AddText(v.c_str(), k.c_str());
+        indexer->AddText(i.second.c_str(), i.first.c_str());
         indexer->Commit(); // what if just commit after do nothing?
     }
 

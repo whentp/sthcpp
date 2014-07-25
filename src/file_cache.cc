@@ -182,7 +182,7 @@ void testFileCache() {
             cout << i << "\t->\t" << tmp << ", tellg: " << fc->Tellg() << endl;
             fc->Read(((char *)&tmp) + 1, sizeof(size_t) - 1);
         }
-        delete fc;
+        delete fc; // should be deleted before file is closed.
         reader.close();
     }
 }

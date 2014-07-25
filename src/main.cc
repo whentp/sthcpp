@@ -95,7 +95,7 @@ void actionSearch(int argc, char const *argv[]) {
 void actionTest(int argc, char const *argv[]) {
     cout << "start testing..." << endl;
 
-    //testInsertPerformance();
+    testInsertPerformance();
     cout << "end testing." << endl;
 }
 

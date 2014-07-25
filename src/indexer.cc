@@ -108,7 +108,7 @@ size_t sortIndex(const char *filename) {
     FILE *filenameindex = fopen(filename, "rb+"); // errr... i use c here just because i donno the alternative for "rb+" in c++.
     auto tmp = new CompareNode[tmpint];
 
-    cout << "Sorting index... ";
+    //cout << "Sorting index... ";
     fseek(filenameindex, 0, SEEK_SET);
     rewind(filenameindex);
     fread(tmp, sizeof(CompareNode), tmpint, filenameindex);
@@ -117,7 +117,7 @@ size_t sortIndex(const char *filename) {
     rewind(filenameindex);
     fwrite(tmp, sizeof(CompareNode), tmpint, filenameindex);
     fclose(filenameindex);
-    cout << "OK." << endl;
+    //cout << "OK." << endl;
 
     delete[] tmp;
     return tmpint;
@@ -135,7 +135,7 @@ size_t compressIndex(
     //FILE* keyf;
     KeyNode tmpkeynode;
 
-    cout << "Compressing index... ";
+    //cout << "Compressing index... ";
 
     TokenItem *tmp = new TokenItem[tmpint];
     ifstream filenameindex(filename_raw, ios::in | ios::binary);
@@ -159,7 +159,7 @@ size_t compressIndex(
     keyf.seekp(0, ios::beg);
 
     // file cache.
-    size_t cache_size = 1024 * 1024;
+    size_t cache_size = 4096;
     FileCache fc_keyf(cache_size);
     FileCache fc_compressf(cache_size);
     fc_keyf.Serve(&keyf, 0);
@@ -189,7 +189,7 @@ size_t compressIndex(
     keyf.close();
     delete[] tmp;
     remove(filename_raw);
-    cout << "OK." << endl;
+    //cout << "OK." << endl;
     return tmpint;
 }
 
@@ -204,17 +204,15 @@ void mergeIndex(
     const char *compressed2,
     const char *tmpcompressed)
 {
-    cout << container1 << endl;
+    /*cout << container1 << endl;
     cout << container2 << endl;
     cout << keyindex1 << endl;
     cout << keyindex2 << endl;
     cout << compressed1 << endl;
-    cout << compressed2 << endl;
+    cout << compressed2 << endl;*/
 
     size_t len1 = getFileLength(container1);
     size_t len2 = getFileLength(container2);
-
-
 
     //remove keyindexcache.
     string keyindexcache = keyindex1;
@@ -257,7 +255,7 @@ void mergeIndex(
     if (!fc2.is_open()) throw "error";
 
     // cache for reading
-    size_t cache_size = 1024 * 1024;
+    size_t cache_size = 4096;
     FileCache fc_fk1(cache_size);
     FileCache fc_fk2(cache_size);
     FileCache fc_fc1(cache_size);
@@ -371,6 +369,7 @@ void mergeIndex(
     }
     // really? is that ok???
 
+    // file_cache should be released before file is closed.
     fc_fk1.Free();
     fc_fk2.Free();
     fc_fc1.Free();
