@@ -22,6 +22,7 @@ namespace bible{
 			virtual ~Tokenizer(){};
 			virtual vector<TokenItem> * Tokenize(const string& original)=0;
 			virtual string GetConfiguration()=0;
+			virtual void RestoreFromConfigurationString(const string& configstr)=0;
 	};
 } // end namespace bible.
 #endif

@@ -25,6 +25,7 @@ public:
     ~TokenizerSingleton(){};
     vector<TokenItem> *Tokenize(const string &original);
     string GetConfiguration();
+    void RestoreFromConfigurationString(const string& configstr){}
 };
 
 } // end namespace bible.

@@ -47,4 +47,5 @@ vector<TokenItem> *TokenizerEnglish::Tokenize(const string &original) {
 string TokenizerEnglish::GetConfiguration() {
     return "Simple English Tokenizer.";
 }
+
 } // end namespace bible.
