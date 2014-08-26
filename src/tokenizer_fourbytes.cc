@@ -25,10 +25,11 @@ vector<TokenItem> *TokenizerFourBytes::Tokenize(const string &original) {
     vector<TokenItem> *result = new vector<TokenItem>();
     size_t pos = 0;
     size_t len = original.size() - _blocksize + 1;
-
+    string data;
     const char *c_str = original.c_str();
+    
     if (_ignorecase) {
-        string data = toLowercase(original);
+        data = toLowercase(original);
         c_str = data.c_str();
     }
 

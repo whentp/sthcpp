@@ -17,8 +17,10 @@ vector<TokenItem> *TokenizerEnglish::Tokenize(const string &original) {
     vector<TokenItem> *result = new vector<TokenItem>();
     size_t len = original.size();
     const char *c_str = original.c_str();
+
+    string data;
     if (_ignorecase) {
-        string data = toLowercase(original);
+        data = toLowercase(original);
         c_str = data.c_str();
     }
     size_t pos = 0;
