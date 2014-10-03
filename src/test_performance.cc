@@ -40,7 +40,10 @@ void testInsertPerformance() {
     etime = watch.Stop();
     cout << "Test data generated: " << etime << "second(s)." << endl;
 
-    Schedule *indexer = new Schedule("./");
+    string tokenizer_name = config_default_tokenizer;
+    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+
+    Schedule *indexer = new Schedule("./", tokenizer_name);
 
     watch.Start();
     for (auto &i : *test_data) {

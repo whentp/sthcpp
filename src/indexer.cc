@@ -35,7 +35,8 @@ void addTextToIndex(
     const char *keystr,
     const char *valuestr,
     const char *to,
-    const char *fcontainer)
+    const char *fcontainer,
+    const char *tokenizer_name)
 {
     const char *raw_string = valuestr;
     size_t length = strlen(raw_string);
@@ -56,8 +57,8 @@ void addTextToIndex(
     //cout << file_number << endl;
     ensureFileExists(to);
 
-    string tokenizer_name = config_default_tokenizer;
-    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+    /*string tokenizer_name = config_default_tokenizer;
+    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);*/
     auto tokenizer = globalTokenizers[tokenizer_name];
     auto hashlist = tokenizer(raw_string);
 
@@ -93,12 +94,13 @@ void addTextToIndex(
 void addFileToIndex(
     const char *filename,
     const char *to,
-    const char *fcontainer)
+    const char *fcontainer,
+    const char *tokenizer_name)
 {
     char *raw_string = NULL;
     size_t filelength;
     loadTextFile(filename, raw_string, filelength);
-    addTextToIndex(filename, raw_string, to, fcontainer);
+    addTextToIndex(filename, raw_string, to, fcontainer, tokenizer_name);
     delete[] raw_string;
 }
 

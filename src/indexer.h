@@ -25,11 +25,13 @@ namespace bible {
  * @param filename the original filename
  * @param to the temporary file.
  * @param fcontainer the filename container.
+ * s@param tokenizer_name specify the tokenizer.
  */
 void addFileToIndex(
     const char *filename,
     const char *to,
-    const char *fcontainer);
+    const char *fcontainer,
+    const char *tokenizer_name);
 
 /**
  * @brief add all tokens of a char* to a temporary file for further compressing.
@@ -38,12 +40,14 @@ void addFileToIndex(
  * @param valuestr the string that want to be indexed.
  * @param to the temporary file.
  * @param fcontainer the filename container.
+ * @param tokenizer_name specify the tokenizer.
  */
 void addTextToIndex(
     const char *keystr,
     const char *valuestr,
     const char *to,
-    const char *fcontainer);
+    const char *fcontainer,
+    const char *tokenizer_name);
 
 size_t sortIndex(const char *filename);
 

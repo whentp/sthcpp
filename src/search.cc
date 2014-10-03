@@ -29,11 +29,13 @@ namespace bible {
 
 Searcher::Searcher(const char *fcontainerstr,
                    const char *fkeyindexstr,
-                   const char *fcompressedstr) {
+                   const char *fcompressedstr,
+                   const char *tokenizer_name) {
     string tmp = "";
     _fcontainer = fcontainerstr;
     _fkeyindex = fkeyindexstr;
     _fcompressed = fcompressedstr;
+    _tokenizer_name = tokenizer_name;
     //cout << _fcontainer << endl;
     //cout << _fkeyindex << endl;
     //cout << _fcompressed << endl;
@@ -132,10 +134,12 @@ void matchFilenamesForResults(SearchResult *res, const char *fcontainer) {
     filenamefounder.Close();
 }
 
-vector<TokenItem> *parseKeywords(const char *str) {
-    string tokenizer_name = config_default_tokenizer;
-    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
-    cout << "tokenizer used: " << tokenizer_name << endl;
+vector<TokenItem> *parseKeywords(const char *str, const string &tokenizer_name) {
+    /*tokenizer_name = config_default_tokenizer;
+    if(configs){
+        tokenizer_name = configs->Read("tokenizer", tokenizer_name);
+    }
+    cout << "tokenizer used: " << tokenizer_name << endl;*/
     auto tokenizer = globalTokenizers[tokenizer_name];
     auto result = tokenizer(string(str));
     return result;
@@ -204,7 +208,7 @@ void Searcher::SearchSingleKeyword(
 {
     CompareNode start_and_length;
     MemBlock *m1, *m2;
-    vector<TokenItem> *keywords = parseKeywords(keyword);
+    vector<TokenItem> *keywords = parseKeywords(keyword, _tokenizer_name);
     size_t lsize = keywords->size();
 
     if (lsize > 0) {

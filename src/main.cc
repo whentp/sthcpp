@@ -35,7 +35,11 @@ void actionCreateIndex(int argc, char const *argv[]) {
              "bible add <index directory>" << endl;
         return;
     }
-    Schedule *indexer = new Schedule(argv[1]);
+
+    string tokenizer_name = config_default_tokenizer;
+    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+
+    Schedule *indexer = new Schedule(argv[1], tokenizer_name);
     string filename;
     indexer->Start();
     while (cin >> filename) {
@@ -72,7 +76,11 @@ void actionSearch(int argc, char const *argv[]) {
     StopWatch watch;
 
     string directory = argv[1];
-    auto searcher = new Schedule(directory);
+
+    string tokenizer_name = config_default_tokenizer;
+    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
+
+    auto searcher = new Schedule(directory, tokenizer_name);
     searcher->PrepareSearchers();
     auto res = searcher->Search(str);
 

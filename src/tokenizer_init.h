@@ -25,9 +25,9 @@ vector<TokenItem> *tokenizer_fourbytes_func(const string &str);
 void initTokenizer();
 
 // just to call initTokenizer() when loading.
-class InitTokenizer{
+class InitTokenizer {
 public:
-    InitTokenizer(){
+    InitTokenizer() {
         initTokenizer();
     }
 };

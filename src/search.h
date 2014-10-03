@@ -31,6 +31,7 @@ private:
     string _fcontainer;
     string _fkeyindex;
     string _fcompressed;
+    string _tokenizer_name;
     KeyIndex *_keyindex_finder;
     ifstream _indexfile;
 
@@ -42,7 +43,8 @@ public:
     Searcher(
         const char *fcontainerstr,
         const char *fkeyindexstr,
-        const char *fcompressedstr);
+        const char *fcompressedstr,
+        const char *tokenizer_name);
 
     ~Searcher();
 
@@ -59,7 +61,7 @@ public:
 void makeNext(MemBlock *&m1);
 size_t compareBlock(MemBlock *m1, MemBlock *m2);
 
-vector<TokenItem> *parseKeywords(const char *str);
+vector<TokenItem> *parseKeywords(const char *str, const string &tokenizer_name);
 
 void matchFilenamesForResults(
     SearchResult *res,

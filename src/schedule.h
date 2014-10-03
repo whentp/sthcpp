@@ -32,9 +32,10 @@ namespace bible{
 	class Schedule{
 		private:
 			string _directory;
+			string _tokenizer_name;
 			vector<Searcher*> *_searchers;
 		public:
-			Schedule(const string directoryname);
+			Schedule(const string directoryname, const string tokenizer_name);
 			~Schedule();
 
 			/**

@@ -83,16 +83,16 @@ namespace bible{
 
 	vector<string> *queryTokenizer(const string &str){
 		vector<string> *res = new vector<string>();
-		map<char, char> escape_chars = {
+		static map<char, char> escape_chars = {
 			{'t','\t'},{'n','\n'},{'r','\r'},{'"','"'},{'\'','\''},
 			{'(','('},{'\\','\\'},{')',')'},
 			{'&','&'},{'|','|'},{'-','-'},{'^','^'}
 		};
-		map<char, bool> operators = {
+		static map<char, bool> operators = {
 			{'&',true},{'|',true},{'-',true},
 			{'^',true},{'(',true},{')',true}
 		};
-		map<char, bool> white_chars = {
+		static map<char, bool> white_chars = {
 			{' ',true},{'\t',true},{'\n',true},{'\r',true}
 		};
 
