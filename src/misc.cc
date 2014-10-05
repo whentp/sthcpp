@@ -32,7 +32,7 @@ void StopWatch::Start() {
 }
 
 double StopWatch::Stop() {
-    std::chrono::system_clock::time_point endingtime = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point endingtime = std::chrono::high_resolution_clock::now();
     double duration = (double)(std::chrono
                                ::duration_cast<std::chrono::milliseconds>(endingtime - start).count()) / 1000;
     return duration;

@@ -5,6 +5,12 @@ AUX_SOURCE_DIRECTORY(
 	src
 	SRC_LIST) # add src to SRC_LIST
 
+AUX_SOURCE_DIRECTORY(
+	header
+	SRC_LIST) # add src to SRC_LIST
+
+include_directories(header)
+
 ADD_DEFINITIONS(
     -std=c++11 # Or -std=c++0x
     -Wall
