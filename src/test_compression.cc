@@ -51,8 +51,8 @@ namespace bible {
     }
 
     void singleOrderedTestCase(size_t size){
-        short *buffer = new short[size];
-        for(short i = 0; i < size; ++i){
+        ushort *buffer = new ushort[size];
+        for(ushort i = 0; i < size; ++i){
             buffer[i] = i;
         }
 
@@ -101,7 +101,7 @@ namespace bible {
         singleOrderedTestCase(1000000);
 
         etime = watch.Stop();
-        cout << "Test Insert Performance: "
+        cout << "Test Performance: "
         << etime << "second(s). " << endl;
     }
 

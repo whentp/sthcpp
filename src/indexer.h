@@ -17,6 +17,10 @@
 
 #ifndef _INDEXER_H_
 #define _INDEXER_H_
+
+#include <fstream>
+#include "container.h"
+
 namespace bible {
 
 /**
@@ -47,6 +51,13 @@ void addTextToIndex(
     const char *valuestr,
     const char *to,
     const char *fcontainer,
+    const char *tokenizer_name);
+
+void addTextToIndexHandler(
+    const char *keystr,
+    const char *valuestr,
+    std::fstream *to,
+    Container *fcontainer,
     const char *tokenizer_name);
 
 size_t sortIndex(const char *filename);

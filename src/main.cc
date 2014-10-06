@@ -13,6 +13,7 @@
 #include "barn.h"
 #include "test_performance.h"
 #include "test_compression.h"
+#include "test_kvcontainer.h"
 #include "file_cache.h"
 #include "keyword_tree.h"
 
@@ -105,7 +106,8 @@ void actionTest(int argc, char const *argv[]) {
     cout << "start testing..." << endl;
 
     //testInsertPerformance();
-    testCompressionPerformance();
+    //testCompressionPerformance();
+    testKvcontainerPerformance();
     cout << "end testing." << endl;
 }
 

@@ -36,7 +36,8 @@ namespace bible {
 
 using namespace std;
 
-Schedule::Schedule(const string directoryname, const string tokenizer_name): _searchers(NULL) {
+Schedule::Schedule(const string directoryname, const string tokenizer_name)
+    : _searchers(NULL),  _tmpcontainer(NULL), _tmp_file_for_indexer(NULL) {
     _directory = directoryname;
     _tokenizer_name = tokenizer_name;
     if (_directory.size()) {
@@ -47,13 +48,42 @@ Schedule::Schedule(const string directoryname, const string tokenizer_name): _se
     } else {
         _directory = "./";
     }
+
+    PrepareIndexer();
     Start();
 }
 
 Schedule::~Schedule() {
+    CloseIndexer();
     if (_searchers) {
         delete _searchers;
         _searchers = NULL;
+    }
+
+}
+
+void Schedule::PrepareIndexer() {
+    if (!_tmpcontainer) {
+        _tmpcontainer = new Container((_directory + "0").c_str());
+    }
+    if (!_tmp_file_for_indexer) {
+        _tmp_file_for_indexer = new fstream((_directory + "tmp.raw").c_str(), ios::app | ios::out | ios::binary | ios::ate);
+        if (!_tmp_file_for_indexer->is_open()) {
+            cout << "error.............";
+        }
+    }
+}
+
+void Schedule::CloseIndexer() {
+    if (_tmpcontainer) {
+        _tmpcontainer->Close();
+        delete _tmpcontainer;
+        _tmpcontainer = NULL;
+    }
+    if (_tmp_file_for_indexer) {
+        _tmp_file_for_indexer->close();
+        delete _tmp_file_for_indexer;
+        _tmp_file_for_indexer = NULL;
     }
 }
 
@@ -66,6 +96,11 @@ void Schedule::PrepareSearchers() {
     _searchers = new vector<Searcher *>;
 
     auto files = FindIndexFiles();
+    // if schedule is indexing, there could be 0 files. therefore remove 0 files from this list.
+    if (files->size() && files->at(0).filename == "0") {
+        files->erase(files->begin());
+        //files->pop_front();
+    }
     for (size_t i = 0; i < files->size(); ++i) {
         string tmpstr = _directory + files->at(i).filename;
         string container_str = tmpstr; // + ".container";
@@ -134,11 +169,18 @@ void Schedule::AddFile(const char *filename) {
 }
 
 void Schedule::AddText(const char *key, const char *value) {
-    addTextToIndex(
+
+    addTextToIndexHandler(
+        key, value,
+        _tmp_file_for_indexer,
+        _tmpcontainer,
+        _tokenizer_name.c_str());
+
+    /*addTextToIndex(
         key, value,
         (_directory + "tmp.raw").c_str(),
         (_directory + "0").c_str(),
-        _tokenizer_name.c_str());
+        _tokenizer_name.c_str());*/
 }
 
 vector<ScheduleFileNode> *Schedule::FindIndexFiles() {
@@ -173,6 +215,7 @@ void Schedule::Start() {
 }
 
 void Schedule::Commit() {
+    CloseIndexer();
     sortIndex((_directory + "tmp.raw").c_str());
     compressIndex(
         (_directory + "tmp.raw").c_str(),
@@ -194,6 +237,7 @@ void Schedule::Commit() {
                (_directory + repeated_tmpstr + file_ext_compressedindex).c_str());
     }
     Merge();
+    PrepareIndexer();
 }
 
 void Schedule::Merge() {
@@ -334,6 +378,7 @@ vector<ScheduleFileNode> *filterFilenameAll(vector<string> *filenames) {
             return a.filename < b.filename;
         });
     }
+
     return res;
 }
 } // end namespace bible.
