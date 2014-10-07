@@ -40,6 +40,7 @@ namespace bible{
 	const char *Container::GetFilename(BibleIntType index){
 		size_t i;
 		char *a;
+		//cout << index << endl;
 		_barn.Get(index, a, i);
 		//cout << "finding filename:" << index  << a << endl;
 		return a;

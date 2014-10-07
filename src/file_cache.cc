@@ -114,7 +114,7 @@ void FileCache::Read(char *s, const size_t n) {
         copy(_mem + _mem_offset, _mem + _cache_size, s);
         _mem_offset = -1;
 
-        if (remaining_size > _mem_offset) {
+        if (remaining_size > _cache_size) {
             ReadBlockFromFile(s + (n - remaining_size), remaining_size);
         } else {
             ReadBlockFromFile();

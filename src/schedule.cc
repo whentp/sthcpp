@@ -67,7 +67,8 @@ void Schedule::PrepareIndexer() {
         _tmpcontainer = new Container((_directory + "0").c_str());
     }
     if (!_tmp_file_for_indexer) {
-        _tmp_file_for_indexer = new fstream((_directory + "tmp.raw").c_str(), ios::app | ios::out | ios::binary | ios::ate);
+        ensureFileExists((_directory + "tmp.raw").c_str());
+        _tmp_file_for_indexer = new fstream((_directory + "tmp.raw").c_str(), ios::in | ios::app | ios::out | ios::binary | ios::ate);
         if (!_tmp_file_for_indexer->is_open()) {
             cout << "error.............";
         }
@@ -128,6 +129,7 @@ SearchResult *Schedule::Search(const char *keyword_str) {
 
         for (size_t i = 0; i < _searchers->size(); ++i) {
             SearchResult *result_piece = _searchers->at(i)->SearchByKeywordTree(kt);
+
             _searchers->at(i)->MatchFilenames(result_piece);
             results->push_back(result_piece);
             count += result_piece->count;
@@ -161,11 +163,12 @@ SearchResult *Schedule::Search(const char *keyword_str) {
 }
 
 void Schedule::AddFile(const char *filename) {
-    addFileToIndex(
-        filename,
-        (_directory + "tmp.raw").c_str(),
-        (_directory + "0").c_str(),
-        _tokenizer_name.c_str());
+    char *raw_string = NULL;
+    size_t filelength;
+    loadTextFile(filename, raw_string, filelength);
+    //addTextToIndex(filename, raw_string);
+    AddText(filename, raw_string);
+    delete[] raw_string;
 }
 
 void Schedule::AddText(const char *key, const char *value) {
@@ -245,10 +248,17 @@ void Schedule::Merge() {
 
     size_t cannot_merge_count = 0;
     for (size_t i = container_files->size(); i-- > 0;) { // attention to the loop. fuck size_t.
+        //delete caches.
+        string filename = container_files->at(i).filename;
+        string cache_to_be_deleted = _directory + filename + file_ext_keyindex + file_ext_keyindex_cache;
+        if (checkFileExists(cache_to_be_deleted.c_str())) {
+            remove(cache_to_be_deleted.c_str());
+        }
+
         bool flag = false;
         //actually only using the first char can get the result.
         for (auto x = container_files->at(i).filename.begin(); x != container_files->at(i).filename.end(); ++x) {
-            if (*x == '0' || *x == '1') {
+            if (*x != '0' && *x != '1') {
                 flag = true;
                 break;
             }
@@ -281,7 +291,7 @@ void Schedule::Merge() {
                 file2 = a;
             }
 
-            string cannot_merge_name = file_fixed_container_prefix + size_t_to_string(cannot_merge_count);
+            string cannot_merge_name = file_fixed_container_prefix + size_t_to_string(cannot_merge_count++);
 
             // rename file2 to cannot_merge_name_xxx
             rename((_directory + file2 + file_ext_container_key).c_str(),
@@ -293,6 +303,7 @@ void Schedule::Merge() {
             rename((_directory + file2 + file_ext_compressedindex).c_str(),
                    (_directory + cannot_merge_name + file_ext_compressedindex).c_str());
 
+            //file2 = file_fixed_container_prefix + size_t_to_string(cannot_merge_count++);;
             // rename file1 to file2.
             rename((_directory + file1 + file_ext_container_key).c_str(),
                    (_directory + file2 + file_ext_container_key).c_str());
@@ -308,7 +319,7 @@ void Schedule::Merge() {
         MergePair(_directory + a, _directory + b);
 
         string tmpfile_append = "0";
-        if (!checkFileExists((_directory + b + "1" + tmpfile_append + file_ext_keyindex).c_str())) {
+        if (!checkFileExists((_directory + b + "1" + file_ext_keyindex).c_str())) {
             tmpfile_append = "1";
         }
 
@@ -334,7 +345,6 @@ void Schedule::Merge() {
     }
 
     delete container_files;
-
     //cout<<"merge ok."<<endl;
 }
 

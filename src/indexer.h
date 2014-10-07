@@ -24,20 +24,6 @@
 namespace bible {
 
 /**
- * @brief tokenize the content of a given file, then add all tokens to a temporary file for further compressing.
- *
- * @param filename the original filename
- * @param to the temporary file.
- * @param fcontainer the filename container.
- * s@param tokenizer_name specify the tokenizer.
- */
-void addFileToIndex(
-    const char *filename,
-    const char *to,
-    const char *fcontainer,
-    const char *tokenizer_name);
-
-/**
  * @brief add all tokens of a char* to a temporary file for further compressing.
  *
  * @param keystr just a name.

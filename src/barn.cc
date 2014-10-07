@@ -123,7 +123,7 @@ namespace bible{
 			exit(0);
 		}
 		size_t tmplen = file.tellg();
-		file.seekg(ios::beg);
+		file.seekg(0, ios::beg);
 		char *tmp = new char[tmplen];
 		file.read(tmp, tmplen);
 		file.close();
@@ -133,10 +133,10 @@ namespace bible{
 			tmpnode->start += _file_values_length;
 			++tmpnode;
 		}
-		_file_keys.seekg(ios::end);
+		_file_keys.seekp(0, ios::end);
 		_file_keys.write(tmp, tmplen);
 		delete[] tmp;
-		_file_keys_length = _file_keys.tellg();
+		_file_keys_length = _file_keys.tellp();
 
 		file.open(filename_values, ios::in|ios::binary|ios::ate);
 		if(!file.is_open()){
@@ -144,11 +144,11 @@ namespace bible{
 			exit(0);
 		}
 		tmplen = file.tellg();
-		file.seekg(ios_base::beg);
+		file.seekg(0, ios::beg);
 		tmp = new char[tmplen];
 		file.read(tmp, tmplen);
 		file.close();
-		_file_values.seekg(ios_base::end);
+		_file_values.seekp(0, ios_base::end);
 		_file_values.write(tmp, tmplen);
 		_file_values_length = _file_values.tellg();
 		delete[] tmp;

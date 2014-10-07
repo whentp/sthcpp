@@ -258,7 +258,8 @@ void shrinkSearchSingleKeyword(SearchResult *res) {
     *cur = makeFileNode(getfilenumber(*cur), 0);
     while (len-- > 0) {
         if (getfilenumber(*cmp) == getfilenumber(*cur)) {
-            ++(*cur); // yes this equals to makeFileNode(getfilenumber(*cur), getfileoffset(*cur) + 1);
+            ++(*cur); // yes this equals to 
+            //makeFileNode(getfilenumber(*cur), (getfileoffset(*cur) + 1) % getfileoffset(MAX_BIBLE_INT_VALUE)) ;
         } else {
             ++cur;
             *cur = makeFileNode(getfilenumber(*cmp), 1);

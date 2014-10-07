@@ -41,15 +41,16 @@ void singleKvTestCase(size_t size) {
     for (auto &i : *test_data) {
         auto found = new vector<string>;
         string key = i.first;
-        if (rand() % 2) {
-            key += "_x";
+        size_t f = rand() % 2;
+        if (f) {
+            //key += "_x";
         }
         if (container->GetValues(key.c_str(), found)) {
             for (auto &j : *found) {
                 cout << "found: " << key << endl;//", " << j << endl;
             }
         } else {
-            cout << "not found" << endl;
+            cout << "not found flag:" << f << endl;
         }
         delete found;
     }
@@ -58,10 +59,53 @@ void singleKvTestCase(size_t size) {
     delete test_data;
 }
 
+void justTest() {
+
+    cout << getfilenumber(MAX_BIBLE_INT_VALUE) << endl;
+
+    auto container = new KeyValueContainer("test_kv");
+
+    for (size_t i = 0; i < 10000; ++i) {
+        container->AddKeyValue("hello, world", "ddddddddddddddddddddddddddddddddddd-=-=");
+    }
+    container->Commit();
+
+    auto found = new vector<string>;
+    string key = "hello, world";
+
+size_t found_num = 0;
+    if ((found_num = container->GetValues(key.c_str(), found))) {
+        for (auto &j : *found) {
+            //cout << "found: " << key << endl;//", " << j << endl;
+        }
+        cout << "found count:" << found_num << endl;
+    } else {
+        cout << "not found" << endl;
+    }
+    delete found;
+
+    found = new vector<string>;
+    key = "hello, world!!";
+
+    if (container->GetValues(key.c_str(), found)) {
+        for (auto &j : *found) {
+            cout << "found: " << key << endl;//", " << j << endl;
+        }
+    } else {
+        cout << "not found" << endl;
+    }
+    delete found;
+
+    delete container;
+}
+
 void testKvcontainerPerformance() {
+    srand (time(NULL));
     StopWatch watch;
 
-    singleKvTestCase(50000);
+    singleKvTestCase(10);
+
+    //justTest();
 
     auto etime = watch.Stop();
     cout << "Test Performance: " << etime << "second(s). " << endl;

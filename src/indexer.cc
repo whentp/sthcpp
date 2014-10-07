@@ -109,19 +109,6 @@ void addTextToIndex(
     delete file;
 }
 
-void addFileToIndex(
-    const char *filename,
-    const char *to,
-    const char *fcontainer,
-    const char *tokenizer_name)
-{
-    char *raw_string = NULL;
-    size_t filelength;
-    loadTextFile(filename, raw_string, filelength);
-    addTextToIndex(filename, raw_string, to, fcontainer, tokenizer_name);
-    delete[] raw_string;
-}
-
 size_t sortIndex(const char *filename) {
     size_t filelength = getFileLength(filename);
     size_t tmpint = filelength / sizeof(CompareNode);
@@ -158,7 +145,7 @@ size_t compressIndex(
     //cout << "Compressing index... ";
 
     TokenItem *tmp = new TokenItem[tmpint];
-    ifstream filenameindex(filename_raw, ios::in | ios::binary);
+    fstream filenameindex(filename_raw, ios::in | ios::binary);
     //fseek(filenameindex,0,SEEK_SET);
     filenameindex.read((char *)tmp, filelength);
     filenameindex.close();
