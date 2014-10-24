@@ -50,7 +50,6 @@ Schedule::Schedule(const string directoryname, const string tokenizer_name)
     }
 
     PrepareIndexer();
-    Start();
 }
 
 Schedule::~Schedule() {
@@ -158,7 +157,7 @@ SearchResult *Schedule::Search(const char *keyword_str) {
         merged_res->state = 0; // means failure.
         merged_res->SetMsg(e.what());
     }
-    delete results;
+    delete results; // omg... check here!!!!!! leak !!!!!!!!!!!
     return merged_res;
 }
 
@@ -191,30 +190,6 @@ vector<ScheduleFileNode> *Schedule::FindIndexFiles() {
     vector<ScheduleFileNode> *container_files = filterFilenameAll(filelist);
     delete filelist;
     return container_files;
-}
-
-void Schedule::Start() {
-    //here should check!!!! because it will be called TWICE.
-    return;
-    /*auto container_files = FindIndexFiles();
-    for(auto &tmpfile : *container_files){
-        string tmp = tmpfile.filename;
-        if(tmp.find("0") != string::npos){
-            string repeated_tmpstr = repeatChar(tmp.size());
-            // container
-            rename((_directory + tmp + file_ext_container_key).c_str(),
-                    (_directory + repeated_tmpstr + file_ext_container_key).c_str());
-            rename((_directory + tmp + file_ext_container_value).c_str(),
-                    (_directory + repeated_tmpstr + file_ext_container_value).c_str());
-            // keyindex
-            rename((_directory + tmp + file_ext_keyindex).c_str(),
-                    (_directory + repeated_tmpstr + file_ext_keyindex).c_str());
-            // compressedindex
-            rename((_directory + tmp + file_ext_compressedindex).c_str(),
-                    (_directory + repeated_tmpstr + file_ext_compressedindex).c_str());
-        }
-    }
-    delete container_files;*/
 }
 
 void Schedule::Commit() {

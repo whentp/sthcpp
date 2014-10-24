@@ -47,7 +47,6 @@ void testInsertPerformance() {
 
     watch.Start();
     for (auto &i : *test_data) {
-        indexer->Start();
         indexer->AddText(i.second.c_str(), i.first.c_str());
         indexer->Commit(); // what if just commit after do nothing?
     }
@@ -60,6 +59,5 @@ void testInsertPerformance() {
     delete indexer;
     delete test_data;
 }
-
 
 } // end namespace bible.

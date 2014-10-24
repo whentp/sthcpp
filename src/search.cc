@@ -23,7 +23,6 @@
 #include "hash.h"
 #include "common.h"
 #include "tokenizer_init.h"
-#include "container.h"
 
 namespace bible {
 
@@ -31,40 +30,47 @@ Searcher::Searcher(const char *fcontainerstr,
                    const char *fkeyindexstr,
                    const char *fcompressedstr,
                    const char *tokenizer_name) {
-    string tmp = "";
     _fcontainer = fcontainerstr;
     _fkeyindex = fkeyindexstr;
     _fcompressed = fcompressedstr;
     _tokenizer_name = tokenizer_name;
-    //cout << _fcontainer << endl;
-    //cout << _fkeyindex << endl;
-    //cout << _fcompressed << endl;
+
     _keyindex_finder = new KeyIndex(_fkeyindex.c_str());
 
-
     _indexfile.open(_fcompressed.c_str(), ios::in | ios::binary);
-
     if (!_indexfile.is_open()) {
         cout << "Unable to open file: " << _fcompressed;
         exit(0);
     }
+
+    _filenamefounder = new Container();
+    _filenamefounder->Open(_fcontainer.c_str());
 }
 
 Searcher::~Searcher() {
     //cout << "searcher destroyed." << endl;
     _indexfile.close();
     delete _keyindex_finder;
+    _filenamefounder->Close();
+    delete _filenamefounder;
 }
 
 SearchResult *Searcher::Search(const char *keyword_str) {
-    //cout << "containerindex in .search.: " << this->_fcontainer << endl;
-    //cout << "keyindex in .search.: " << this->_fkeyindex << endl;
-    //cout << "compressed in .search.: " << this->_fcompressed << endl;
     return SearchMultipleKeywords(keyword_str);
 }
 
 void Searcher::MatchFilenames(SearchResult *res) {
-    matchFilenamesForResults(res, _fcontainer.c_str());
+    //matchFilenamesForResults(res, _fcontainer.c_str());
+    size_t length = res->count;
+    BibleIntType *tmp;
+    BibleIntType filenumber;
+    tmp = res->indexes;
+
+    res->filenames = new FileNode[length];
+    for (size_t i = 0; i < length; ++i) {
+        filenumber = getfilenumber(tmp[i]);
+        res->filenames[i] = (FileNode)_filenamefounder->GetFilename(filenumber);
+    }
 }
 
 MemBlock *Searcher::GetMemBlock(CompareNode &node) {
@@ -117,7 +123,6 @@ size_t compareBlock(MemBlock *m1, MemBlock *m2) {
 
 void matchFilenamesForResults(SearchResult *res, const char *fcontainer) {
     size_t length = res->count;
-    //fstream filenameindex(fcontainer, ios::in|ios::binary);
     BibleIntType *tmp;
     BibleIntType filenumber;
     tmp = res->indexes;
@@ -128,18 +133,12 @@ void matchFilenamesForResults(SearchResult *res, const char *fcontainer) {
     res->filenames = new FileNode[length];
     for (size_t i = 0; i < length; ++i) {
         filenumber = getfilenumber(tmp[i]);
-        //cout << filenumber << endl;
         res->filenames[i] = (FileNode)filenamefounder.GetFilename(filenumber);
     }
     filenamefounder.Close();
 }
 
 vector<TokenItem> *parseKeywords(const char *str, const string &tokenizer_name) {
-    /*tokenizer_name = config_default_tokenizer;
-    if(configs){
-        tokenizer_name = configs->Read("tokenizer", tokenizer_name);
-    }
-    cout << "tokenizer used: " << tokenizer_name << endl;*/
     auto tokenizer = globalTokenizers[tokenizer_name];
     auto result = tokenizer(string(str));
     return result;

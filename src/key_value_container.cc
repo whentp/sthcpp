@@ -40,7 +40,6 @@ KeyValueContainer::~KeyValueContainer() {
 
 void KeyValueContainer::AddKeyValue(const char *key, const char *value) {
     string filename;
-    _schedule->Start();
     _schedule->AddText(value, key);
 }
 

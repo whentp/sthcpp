@@ -23,6 +23,7 @@
 #include "keyindex.h"
 #include "tokenizer.h"
 #include "structure.h"
+#include "container.h"
 
 namespace bible {
 
@@ -34,6 +35,7 @@ private:
     string _tokenizer_name;
     KeyIndex *_keyindex_finder;
     ifstream _indexfile;
+    Container *_filenamefounder;
 
     void SearchSingleKeyword(
         SearchResult *res,

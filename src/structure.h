@@ -33,56 +33,66 @@ typedef uint32_t BibleIntType;
 
 #define makeFileNode(fileindex, offset) (((fileindex) << FILE_TOKEN_COUNT_BIT_MAX)+(offset))
 
-namespace bible{
+namespace bible {
 
-	/**
-	 * @brief Attention to the order of file and key.
-	 */
-	/*struct IndexNode {
-	  BibleIntType file;
-	  BibleIntType key;
-	  };*/
+/**
+ * @brief Attention to the order of file and key.
+ */
+/*struct IndexNode {
+  BibleIntType file;
+  BibleIntType key;
+  };*/
 
-	/**
-	 * @brief Attention to the order of n1 and n2.
-	 */
-	struct CompareNode {
-		BibleIntType n2;
-		BibleIntType n1;
-	};
+/**
+ * @brief Attention to the order of n1 and n2.
+ */
+struct CompareNode {
+    BibleIntType n2;
+    BibleIntType n1;
+};
 
-	struct KeyNode {
-		BibleIntType key;
-		size_t start;
-		size_t length;
-		//int type; ///< the type of a keynode. 0: normal, 1: using zlib, maybe.
-	};
+struct KeyNode {
+    BibleIntType key;
+    size_t start;
+    size_t length;
+    //int type; ///< the type of a keynode. 0: normal, 1: using zlib, maybe.
+};
 
-	typedef char* FileNode;
+typedef char *FileNode;
 
-	struct SearchResult {
-		size_t count;
-		double elapsetime;
-		BibleIntType* indexes;
-		FileNode* filenames; ///< the filenames. Should be NULL before the matchfilenames is called.
-		size_t state;
-		char *msg;
-		SearchResult(): count(0), elapsetime(0), indexes(NULL), filenames(NULL), state(0), msg(NULL){}
-		~SearchResult();
-		void SetMsg(const char* msg);
-	};
+struct SearchResult {
+    size_t count;
+    double elapsetime;
+    BibleIntType *indexes;
+    FileNode *filenames; ///< the filenames. Should be NULL before the matchfilenames is called.
+    size_t state;
+    bool preserve_filenames;
+    char *msg;
+    SearchResult():
+        count(0),
+        elapsetime(0),
+        indexes(NULL),
+        filenames(NULL),
+        state(0),
+        msg(NULL),
+        preserve_filenames(false)
+    {}
+    ~SearchResult();
+    void LockFilenames();
+    void SetMsg(const char *msg);
+};
 
-	struct MemBlock {
-		size_t length;
-		int flag;
-		char* block;
-		MemBlock(size_t size);
-		MemBlock(): MemBlock(0) {}
-		~MemBlock();
-		void Lock(); ///< lock block and do not release block when destructor is called.
-		void Free();
-	};
+struct MemBlock {
+    size_t length;
+    int flag;
+    char *block;
+    MemBlock(size_t size);
+    MemBlock(): MemBlock(0) {}
+    ~MemBlock();
+    void Lock(); ///< lock block and do not release block when destructor is called.
+    void Free();
+};
 
-	bool compareIndex(const CompareNode a, const CompareNode b);
+bool compareIndex(const CompareNode a, const CompareNode b);
 } // end namespace bible.
 #endif

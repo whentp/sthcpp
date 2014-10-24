@@ -67,12 +67,6 @@ public:
     void Commit();
 
     /**
-     * @brief Should be called before adding files to index.
-     * @details This method ensures no "0" exists in filenames.
-     */
-    void Start();
-
-    /**
      * @brief Merge indexes using tp's idea.
      */
     void Merge();

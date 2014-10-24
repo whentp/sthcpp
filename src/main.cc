@@ -43,7 +43,6 @@ void actionCreateIndex(int argc, char const *argv[]) {
 
     Schedule *indexer = new Schedule(argv[1], tokenizer_name);
     string filename;
-    indexer->Start();
     while (cin >> filename) {
         indexer->AddFile(filename.c_str());
     }
