@@ -18,47 +18,39 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <fstream>
 #include <algorithm>
 #include <string.h>
 #include "tokenizer_init.h"
 #include "structure.h"
 #include "file_op.h"
 #include "common.h"
-#include "container.h"
 #include "file_cache.h" // for file cache.
+#include "indexer.h"
 
 namespace bible {
 using namespace std;
 
-void addTextToIndex(
-    const char *keystr,
+void addTextToMemIndexHandler(const char *keystr,
     const char *valuestr,
-    const char *to,
-    const char *fcontainer,
-    const char *tokenizer_name)
+    vector<TokenItem> *to,
+    Container *fcontainer,
+    const char *tokenizer_name) 
 {
     const char *raw_string = valuestr;
     size_t length = strlen(raw_string);
 
     if (!length) return; // should here return??? when length == 0, should i create some empty files?
 
-    Container tmpcontainer(fcontainer);
-
     BibleIntType max_file_offset = getfileoffset(MAX_BIBLE_INT_VALUE);
     BibleIntType max_file_number = getfilenumber(MAX_BIBLE_INT_VALUE);
 
-    BibleIntType file_number = tmpcontainer.GetFileNumber(keystr);
+    BibleIntType file_number = fcontainer->GetFileNumber(keystr);
 
     if (file_number >= max_file_number) {
         cout << "container full. cannot add file." << endl;
         exit(0);
     }
-    //cout << file_number << endl;
-    ensureFileExists(to);
 
-    /*string tokenizer_name = config_default_tokenizer;
-    tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);*/
     auto tokenizer = globalTokenizers[tokenizer_name];
     auto hashlist = tokenizer(raw_string);
 
@@ -69,63 +61,26 @@ void addTextToIndex(
         TokenItem *current_item = &(*item);
         current_item->offset = makeFileNode(file_number, current_item->offset);
         ++processed_token_count;
+        to->push_back(*current_item); // here append to the memblock
         if (processed_token_count >= max_file_offset) {
             cout << "Only the first " << processed_token_count << "tokens are indexed." << endl;
             break;
         }
     }
-
-    if (hashlist->size()) {
-        fstream file (to, ios::in | ios::out | ios::binary | ios::ate);
-        if (file.is_open()) {
-            file.write((const char *)(&((*hashlist)[0])), sizeof(TokenItem) * processed_token_count);
-            file.close();
-            //here should output some information.
-            //cout << "Processing " << keystr
-            //<< ", length: " << length << " bytes, ratio: "
-            //<< (double)processed_token_count * sizeof(TokenItem) / length << endl;
-        }
-    }
-    //cout << "size:" << hashlist->size() << endl;
     delete hashlist;
-    //any leak?
 }
 
-void addFileToIndex(
-    const char *filename,
-    const char *to,
-    const char *fcontainer,
-    const char *tokenizer_name)
-{
-    char *raw_string = NULL;
-    size_t filelength;
-    loadTextFile(filename, raw_string, filelength);
-    addTextToIndex(filename, raw_string, to, fcontainer, tokenizer_name);
-    delete[] raw_string;
-}
-
-size_t sortIndex(const char *filename) {
-    size_t filelength = getFileLength(filename);
-    size_t tmpint = filelength / sizeof(CompareNode);
-    FILE *filenameindex = fopen(filename, "rb+"); // errr... i use c here just because i donno the alternative for "rb+" in c++.
-    auto tmp = new CompareNode[tmpint];
-
-    //cout << "Sorting index... ";
-    fseek(filenameindex, 0, SEEK_SET);
-    rewind(filenameindex);
-    fread(tmp, sizeof(CompareNode), tmpint, filenameindex);
+size_t sortMemIndex(vector<TokenItem> * mem_index) {
+    size_t tmpint = mem_index->size();
+    if(!tmpint){
+        return 0;
+    }
+    CompareNode *tmp = (CompareNode *)(&((*hashlist)[0]));
     sort(tmp, tmp + tmpint, compareIndex);
-    fseek(filenameindex, 0, SEEK_SET);
-    rewind(filenameindex);
-    fwrite(tmp, sizeof(CompareNode), tmpint, filenameindex);
-    fclose(filenameindex);
-    //cout << "OK." << endl;
-
-    delete[] tmp;
     return tmpint;
 }
 
-size_t compressIndex(
+size_t compressMemIndex(
     const char *filename_raw,
     const char *filename_compress,
     const char *filename_keyindex)
@@ -140,7 +95,7 @@ size_t compressIndex(
     //cout << "Compressing index... ";
 
     TokenItem *tmp = new TokenItem[tmpint];
-    ifstream filenameindex(filename_raw, ios::in | ios::binary);
+    fstream filenameindex(filename_raw, ios::in | ios::binary);
     //fseek(filenameindex,0,SEEK_SET);
     filenameindex.read((char *)tmp, filelength);
     filenameindex.close();
