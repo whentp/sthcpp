@@ -15,8 +15,8 @@
  *     whentp <tpsmsproject@gmail.com>
  */
 
-#ifndef _INDEXER_H_
-#define _INDEXER_H_
+#ifndef _INDEXER_HDD_H_
+#define _INDEXER_HDD_H_
 
 #include <fstream>
 #include "container.h"
@@ -83,4 +83,5 @@ void mergeIndex(
     const char *compressed2,
     const char *tmpcompressed);
 } // end namespace bible.
+
 #endif

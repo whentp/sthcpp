@@ -58,7 +58,6 @@ Schedule::~Schedule() {
         delete _searchers;
         _searchers = NULL;
     }
-
 }
 
 void Schedule::PrepareIndexer() {
