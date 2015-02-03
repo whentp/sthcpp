@@ -41,7 +41,7 @@ void actionCreateIndex(int argc, char const *argv[]) {
     string tokenizer_name = config_default_tokenizer;
     tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
 
-    Schedule *indexer = new Schedule(argv[1], tokenizer_name);
+    Schedule *indexer = new Schedule(argv[1], tokenizer_name, 0);
     string filename;
     while (cin >> filename) {
         indexer->AddFile(filename.c_str());
@@ -81,7 +81,7 @@ void actionSearch(int argc, char const *argv[]) {
     string tokenizer_name = config_default_tokenizer;
     tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
 
-    auto searcher = new Schedule(directory, tokenizer_name);
+    auto searcher = new Schedule(directory, tokenizer_name, 0);
     searcher->PrepareSearchers();
     auto res = searcher->Search(str);
 
@@ -104,9 +104,9 @@ void actionSearch(int argc, char const *argv[]) {
 void actionTest(int argc, char const *argv[]) {
     cout << "start testing..." << endl;
 
-    //testInsertPerformance();
+    testInsertPerformance();
     //testCompressionPerformance();
-    testKvcontainerPerformance();
+    //testKvcontainerPerformance();
     cout << "end testing." << endl;
 }
 

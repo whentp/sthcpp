@@ -51,11 +51,12 @@ public:
     const char *GetFilename(BibleIntType index);
     const char *GetFilename(BibleIntType index, size_t &length); ///< attention: length is a parameter for output.
 
+    size_t GetFileCount();
+
     size_t Merge(const char *single_file_name);
 
     void Close();
 };
-
 
 } // end namespace bible.
 #endif

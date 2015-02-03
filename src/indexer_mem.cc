@@ -136,7 +136,7 @@ size_t compressMemIndex(
     fc_compressf.Free();
     compressf.close();
     keyf.close();
-    delete[] tmp;
+    mem_index->clear();
     return tmpint;
 }
 

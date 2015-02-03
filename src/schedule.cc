@@ -26,6 +26,7 @@
 #include "schedule.h"
 #include "hash.h"
 #include "indexer.h"
+#include "indexer_mem.h"
 #include "search.h"
 #include "file_op.h"
 #include "keyword_tree.h"
@@ -36,14 +37,29 @@ namespace bible {
 
 using namespace std;
 
-Schedule::Schedule(const string directoryname, const string tokenizer_name)
-    : _searchers(NULL),  _tmpcontainer(NULL), _tmp_file_for_indexer(NULL) {
+Schedule::Schedule(
+    const string directoryname,
+    const string tokenizer_name,
+    const size_t mode)
+// initialization
+    : _searchers(NULL),
+      _tmpcontainer(NULL),
+      _tmp_file_for_indexer(NULL),
+      _mode(0),
+      _to(NULL)
+{
     _directory = directoryname;
     _tokenizer_name = tokenizer_name;
+    _mode = mode;
     if (_directory.size()) {
         if (_directory.at(_directory.size() - 1) != '/' &&
                 _directory.at(_directory.size() - 1) != '\\') {
             _directory += "/";
+        }
+        // create directory if does not exist.
+        string tmp = _directory.substr(0, _directory.size() - 1);
+        if (!folder_exists(tmp)) {
+            _mkdir(tmp.c_str());
         }
     } else {
         _directory = "./";
@@ -58,18 +74,25 @@ Schedule::~Schedule() {
         delete _searchers;
         _searchers = NULL;
     }
+    if (_to) {
+        delete _to;
+    }
 }
 
 void Schedule::PrepareIndexer() {
     if (!_tmpcontainer) {
         _tmpcontainer = new Container((_directory + "0").c_str());
     }
-    if (!_tmp_file_for_indexer) {
-        ensureFileExists((_directory + "tmp.raw").c_str());
-        _tmp_file_for_indexer = new fstream((_directory + "tmp.raw").c_str(), ios::in | ios::app | ios::out | ios::binary | ios::ate);
-        if (!_tmp_file_for_indexer->is_open()) {
-            cout << "error.............";
+    if (_mode == 1) {
+        if (!_tmp_file_for_indexer) {
+            ensureFileExists((_directory + "tmp.raw").c_str());
+            _tmp_file_for_indexer = new fstream((_directory + "tmp.raw").c_str(), ios::in | ios::app | ios::out | ios::binary | ios::ate);
+            if (!_tmp_file_for_indexer->is_open()) {
+                cout << "error.............";
+            }
         }
+    } else {
+        _to = new vector<TokenItem>();
     }
 }
 
@@ -170,18 +193,19 @@ void Schedule::AddFile(const char *filename) {
 }
 
 void Schedule::AddText(const char *key, const char *value) {
-
-    addTextToIndexHandler(
-        key, value,
-        _tmp_file_for_indexer,
-        _tmpcontainer,
-        _tokenizer_name.c_str());
-
-    /*addTextToIndex(
-        key, value,
-        (_directory + "tmp.raw").c_str(),
-        (_directory + "0").c_str(),
-        _tokenizer_name.c_str());*/
+    if (_mode) {
+        addTextToIndexHandler(
+            key, value,
+            _tmp_file_for_indexer,
+            _tmpcontainer,
+            _tokenizer_name.c_str());
+    } else {
+        addTextToMemIndexHandler(
+            key, value,
+            _to,
+            _tmpcontainer,
+            _tokenizer_name.c_str());
+    }
 }
 
 vector<ScheduleFileNode> *Schedule::FindIndexFiles() {
@@ -193,11 +217,24 @@ vector<ScheduleFileNode> *Schedule::FindIndexFiles() {
 
 void Schedule::Commit() {
     CloseIndexer();
-    sortIndex((_directory + "tmp.raw").c_str());
-    compressIndex(
-        (_directory + "tmp.raw").c_str(),
-        (_directory + "0" + file_ext_compressedindex).c_str(),
-        (_directory + "0" + file_ext_keyindex).c_str());
+    if (_mode) {
+        sortIndex((_directory + "tmp.raw").c_str());
+        compressIndex(
+            (_directory + "tmp.raw").c_str(),
+            (_directory + "0" + file_ext_compressedindex).c_str(),
+            (_directory + "0" + file_ext_keyindex).c_str());
+    } else {
+        sortMemIndex(_to);
+        compressMemIndex(
+            _to,
+            (_directory + "0" + file_ext_compressedindex).c_str(),
+            (_directory + "0" + file_ext_keyindex).c_str());
+        if (_to) {
+            delete _to;
+            _to = NULL;
+        }
+    }
+
     if (!checkFileExists((_directory + "1" + file_ext_keyindex).c_str())) {
         string tmp = "0";
         string repeated_tmpstr = repeatChar(tmp.size());

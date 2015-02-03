@@ -30,7 +30,7 @@ KeyValueContainer::KeyValueContainer(const string &path) {
     }
 
     string tokenizer_name = "singleton";
-    _schedule = new Schedule(_path, tokenizer_name);
+    _schedule = new Schedule(_path, tokenizer_name, 0);
     _schedule->PrepareSearchers();
 }
 

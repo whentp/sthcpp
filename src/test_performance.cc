@@ -35,7 +35,7 @@ void testInsertPerformance() {
     /* initialize random seed: */
     srand (time(NULL));
     watch.Start();
-    size_t count = 1000;
+    size_t count = 10000;
     map<string, string> *test_data = generateTestData(count);
     etime = watch.Stop();
     cout << "Test data generated: " << etime << "second(s)." << endl;
@@ -43,13 +43,13 @@ void testInsertPerformance() {
     string tokenizer_name = config_default_tokenizer;
     tokenizer_name = globalConfigs.Read("tokenizer", tokenizer_name);
 
-    Schedule *indexer = new Schedule("./", tokenizer_name);
+    Schedule *indexer = new Schedule("./", tokenizer_name, 0);
 
     watch.Start();
     for (auto &i : *test_data) {
         indexer->AddText(i.second.c_str(), i.first.c_str());
-        indexer->Commit(); // what if just commit after do nothing?
     }
+        indexer->Commit(); // what if just commit after do nothing?
 
     etime = watch.Stop();
     cout << "Test Insert Performance: "

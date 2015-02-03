@@ -38,10 +38,24 @@ private:
     vector<Searcher *> *_searchers;
     fstream *_tmp_file_for_indexer;
     Container *_tmpcontainer;
+    size_t _mode;
+    vector<TokenItem> *_to; // for creating index in mem.
     void PrepareIndexer();
     void CloseIndexer();
 public:
-    Schedule(const string directoryname, const string tokenizer_name);
+
+    /**
+     * @brief A schedule is to create and search multiple indexes.
+     * 
+     * @param directoryname the directory storing
+     * @param tokenizer_name the tokenizer name
+     * @param mode 1: create index in hdd; 2: create index in mem.
+     */
+    Schedule(
+        const string directoryname,
+        const string tokenizer_name,
+        const size_t mode);
+
     ~Schedule();
 
     /**
