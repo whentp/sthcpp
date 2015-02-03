@@ -47,6 +47,8 @@ string size_t_to_string(size_t);
 
 string toLowercase(const string &original);
 
+template<typename T>
+bool canOverflow(const T x, const T y, const T max_value, const T min_value);
 } // end namespace bible.
 
 #endif

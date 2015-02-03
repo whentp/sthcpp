@@ -83,15 +83,15 @@ void Schedule::PrepareIndexer() {
     if (!_tmpcontainer) {
         _tmpcontainer = new Container((_directory + "0").c_str());
     }
-    if (_mode == 1) {
+    if (_mode) {// hdd mode.
         if (!_tmp_file_for_indexer) {
             ensureFileExists((_directory + "tmp.raw").c_str());
             _tmp_file_for_indexer = new fstream((_directory + "tmp.raw").c_str(), ios::in | ios::app | ios::out | ios::binary | ios::ate);
             if (!_tmp_file_for_indexer->is_open()) {
-                cout << "error.............";
+                throw "Cannot open tmp file for indexer.";
             }
         }
-    } else {
+    } else { // mem mode.
         _to = new vector<TokenItem>();
     }
 }
@@ -193,13 +193,16 @@ void Schedule::AddFile(const char *filename) {
 }
 
 void Schedule::AddText(const char *key, const char *value) {
-    if (_mode) {
+    if (_tmpcontainer->GetFileCount() >= getfilenumber(MAX_BIBLE_INT_VALUE)) {
+        Commit();
+    }
+    if (_mode) { // use hdd mode.
         addTextToIndexHandler(
             key, value,
             _tmp_file_for_indexer,
             _tmpcontainer,
             _tokenizer_name.c_str());
-    } else {
+    } else { // use mem mode.
         addTextToMemIndexHandler(
             key, value,
             _to,
@@ -216,6 +219,9 @@ vector<ScheduleFileNode> *Schedule::FindIndexFiles() {
 }
 
 void Schedule::Commit() {
+    if (_tmpcontainer->GetFileCount() == 0) { // do nothing.
+        return;
+    }
     CloseIndexer();
     if (_mode) {
         sortIndex((_directory + "tmp.raw").c_str());
@@ -276,7 +282,6 @@ void Schedule::Merge() {
         }
         if (flag) {
             ++cannot_merge_count;
-            //container_files->erase(container_files->begin() + i);
         }
     }
 
@@ -362,9 +367,6 @@ void Schedule::Merge() {
 void Schedule::MergePair(const string &a, const string &b) {
     //StopWatch watch;
     mergeIndex(
-        //(a+".container").c_str(),
-        //(b+".container").c_str(),
-        //(_directory + "tmp_container").c_str(),
         a.c_str(), b.c_str(), (_directory + "tmp_container").c_str(),
         (a + file_ext_keyindex).c_str(),
         (b + file_ext_keyindex).c_str(),
@@ -385,7 +387,6 @@ vector<ScheduleFileNode> *filterFilenameAll(vector<string> *filenames) {
     auto res = new vector<ScheduleFileNode>();
     size_t pos;
     for (auto &i : *filenames) {
-        //cout<<"\t"<<i<<endl;
         if ((pos = i.find(file_ext_container_key)) != string::npos) {
             ScheduleFileNode snode;
             snode.filename = i.substr(0, pos);

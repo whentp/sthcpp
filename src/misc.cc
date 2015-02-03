@@ -65,4 +65,13 @@ string toLowercase(const string &original) {
     return data;
 }
 
+template<typename T>
+bool canOverflow(const T x, const T y, const T max_value, const T min_value) {
+    if ((y > 0 && x > max_value - y) || (y < 0 && x < min_value - y)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 } // end namespace bible

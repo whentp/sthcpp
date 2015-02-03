@@ -13,7 +13,7 @@ map<string, string> *generateTestData(size_t count) {
     map<string, string> *res = new map<string, string>();
     for (size_t i = 0; i < count; ++i) {
         string k = generateRandString((rand() % 40) + 40);
-        string v = generateRandString((rand() % 40) + 40);
+        string v = generateRandString((rand() % 40) + 4000);
         res->insert(pair<string, string>(k, v));
     }
     return res;
@@ -35,7 +35,7 @@ void testInsertPerformance() {
     /* initialize random seed: */
     srand (time(NULL));
     watch.Start();
-    size_t count = 10000;
+    size_t count = 100000;
     map<string, string> *test_data = generateTestData(count);
     etime = watch.Stop();
     cout << "Test data generated: " << etime << "second(s)." << endl;
@@ -49,7 +49,7 @@ void testInsertPerformance() {
     for (auto &i : *test_data) {
         indexer->AddText(i.second.c_str(), i.first.c_str());
     }
-        indexer->Commit(); // what if just commit after do nothing?
+    indexer->Commit(); // what if just commit after do nothing?
 
     etime = watch.Stop();
     cout << "Test Insert Performance: "
